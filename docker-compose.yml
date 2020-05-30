@@ -1,0 +1,145 @@
+version: '3.7'
+services:
+    ngrok:
+        build: ./ngrok
+        container_name: ngrok
+        restart: unless-stopped
+        command: /bin/sh -c "ngrok authtoken ${ngrok_auth} && ngrok http backend:5000 -hostname=react.memehub.lol --log stdout"
+    memehub:
+        build: ./frontend
+        container_name: memehub
+        restart: unless-stopped
+        volumes:
+            - ./frontend:/app
+        environment:
+            - NODE_ENV=development
+        ports:
+            - '3000:3000'
+    backend:
+        build: ./backend
+        container_name: backend
+        restart: unless-stopped
+        volumes:
+            - ./backend:/app
+        env_file:
+            - ./environments/memedata.env
+            - ./environments/backend.env
+            - ./environments/hive.env
+        environment:
+            - NODE_ENV=development
+        ports:
+            - 5000:5000
+        
+    site-data:
+        image: postgres:latest
+        container_name: sitedata
+        restart: unless-stopped
+        volumes:
+            - ./backups:/backups
+            - sitedata:/var/lib/postgresql/data
+        env_file:
+            - ./environments/sitedata.env
+        ports:
+            - 2345:5432
+    meme-data:
+        image: postgres:latest
+        container_name: memedata
+        restart: unless-stopped
+        volumes:
+            - ./backups:/backups
+            - memedata:/var/lib/postgresql/data
+        env_file:
+            - ./environments/memedata.env
+        ports:
+            - 5432:5432
+    rejson:
+        image: redislabs/rejson:latest
+        container_name: rejson
+        command: redis-server --loadmodule /usr/lib/redis/modules/rejson.so --appendonly yes
+        restart: unless-stopped
+        volumes:
+            - rejson:/data
+        ports:
+            - 6379:6379
+            
+    controllers:
+        build: ./controllers
+        image: controllers-image:1.0.0
+        container_name: controllers
+        # command: bash -c 'sleep 1 && flask db upgrade && gunicorn -c "python:config.gunicorn" --reload "controller:APP"'
+        command: gunicorn -c "python:config.gunicorn" --reload "controller:APP"
+        restart: unless-stopped
+        volumes:
+            - ./controllers:/app
+        environment:
+            FLASK_RUN_PORT: 8000
+            FLASK_APP: controller:APP
+            FLASK_ENV: development
+        env_file:
+            - ./environments/flask.env
+            - ./environments/scrapers.env
+            - ./environments/memedata.env
+            - ./environments/hive.env
+        ports:
+            - 8000:8000
+    controller-tasks:
+        image: controllers-image:1.0.0
+        depends_on:
+            - controllers
+        container_name: controller-tasks
+        command: celery worker -B -l info -A controller.CELERY
+        restart: unless-stopped
+        volumes:
+            - ./controllers:/app
+        env_file:
+            - ./environments/flask.env
+            - ./environments/scrapers.env
+            - ./environments/memedata.env
+            - ./environments/hive.env
+    # model-server:
+    #     build: ./models
+    #     container_name: model_server
+    #     command: gunicorn -c "python:config.gunicorn" --reload "server:APP"
+    #     restart: unless-stopped
+    #     volumes:
+    #         - ./models:/app
+    #     env_file:
+    #         - ./environments/flask.env
+    #         - ./environments/postgres.env
+    #     ports:
+    #         - 8080:8080
+
+    # notebook-server:
+    #     build: ./jupyter
+    #     container_name: notebook_server
+    #     restart: unless-stopped
+    #     command: jupyter lab
+    #     volumes:
+    #         - ./jupyter/notebooks:/notebooks
+    #     env_file:
+    #         - ./environments/hive.env
+    #         - ./environments/jupyter.env
+    #     ports:
+    #         - 8888:8888
+
+    # task-monitor:
+    #     image: controllers-image:1.0.0
+    #     depends_on:
+    #         - controllers
+    #     container_name: task_monitor
+    #     entrypoint: flower
+    #     command: -A controller.CELERY
+    #     restart: unless-stopped
+    #     volumes:
+    #         - ./controllers:/app
+    #     env_file:
+    #         - ./environments/flask.env
+    #         - ./environments/scrapers.env
+    #         - ./environments/postgres.env
+    #     ports:
+    #         - 5555:5555
+volumes:
+    memedata:
+    hivedata:
+    rejson:
+    sitedata:

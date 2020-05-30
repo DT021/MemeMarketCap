@@ -1,0 +1,65 @@
+from flask import (Flask, jsonify, render_template, Blueprint, redirect, url_for)
+from flask_migrate import Migrate
+from celery import Celery
+from decouple import config
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from controller.reddit.classes import RedditReDB
+from controller.api.database import database
+from controller.sentry import integrate_sentry
+from controller.extensions import debug_toolbar,db
+
+CELERY_TASK_LIST = ['controller.reddit.tasks','controller.imgflip.tasks']
+def create_celery_app(app=None):
+    app = app or create_app()
+    celery = Celery(
+        app.import_name,
+        broker=app.config['CELERY_BROKER_URL'],
+        include=CELERY_TASK_LIST
+    )
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    return celery
+
+def create_app(settings_override=None):
+    app = Flask(__name__, instance_relative_config=True)
+    Migrate(app, db)
+    app.config.from_object('config.flask')
+
+    extensions(app)
+    app.register_blueprint(database)
+
+    @app.route('/')
+    def index():
+        return redirect(url_for('demo.home'))
+    @app.route('/redb_struct')
+    def redb_struct():
+        redb = RedditReDB()
+        redb.build()
+        return jsonify(redb.current)
+    @app.route('/debug_sentry')
+    def trigger_error():
+        division_by_zero = 1 / 0
+
+    return app
+
+def sentry():
+    integrate_sentry(FlaskIntegration)
+    integrate_sentry(CeleryIntegration)
+    integrate_sentry(RedisIntegration)
+    integrate_sentry(SqlalchemyIntegration)
+
+def extensions(app):
+    debug_toolbar.init_app(app)
+    from controller.reddit.schema import RedditMeme, RedditScore
+    from controller.imgflip.schema import Template
+    from controller.hive.schema import MemehubCommunity, Votable
+    db.init_app(app)
