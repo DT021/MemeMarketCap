@@ -18,13 +18,12 @@ def extract_data(submission):
     return {
         "reddit_id": submission.id,
         "title": submission.title,
-        "author": str(submission.author),
+        "redditor": str(submission.author),
         "timestamp": submission.created_utc,
         "datetime": datetime.fromtimestamp(submission.created_utc),
-        "media": submission.url,
+        "url": submission.url,
         "upvote_ratio": submission.upvote_ratio,
         "upvotes": submission.score,
         "downvotes": round(submission.score / submission.upvote_ratio) - submission.score,
-        "nsfw": submission.over_18,
         "num_comments": submission.num_comments
     }

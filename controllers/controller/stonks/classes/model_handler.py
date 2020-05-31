@@ -1,4 +1,4 @@
-from server.classes import TemplateClassifier
+from controller.stonks.classes.template_clf import TemplateClassifier
 
 class ModelHandler(object):
     template_clf = None

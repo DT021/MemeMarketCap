@@ -40,4 +40,4 @@ HIVE_DATA_URI = f'postgresql://{DB_USER}:{DB_PASS}@hivedata:{DB_PORT}/{DB_NAME}'
 
 SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_SERVICE}:{DB_PORT}/{DB_NAME}'
 
-SQLALCHEMY_BINDS = { 'memedata': MEMEDATA_URI, 'sitedata': SITE_DATA_URI, 'hivedata': HIVE_DATA_URI }
+SQLALCHEMY_BINDS = { 'memedata': MEMEDATA_URI, 'sitedata': SITE_DATA_URI }

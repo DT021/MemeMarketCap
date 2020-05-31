@@ -9,7 +9,7 @@ PRED_GEN_DIR = 'pred_gen_dir'
 weights_path = "controller/models/template_clf.h5"
 
 def to_hash(img):
-   return hashlib.md5(img.tobytes()).hexdigest()
+    return hashlib.md5(img.tobytes()).hexdigest()
 
 class ImgHandler:
     def __init__(self):

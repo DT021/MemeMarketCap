@@ -7,7 +7,6 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from controller.reddit.classes import RedditReDB
-from controller.api.database import database
 from controller.sentry import integrate_sentry
 from controller.extensions import debug_toolbar,db
 
@@ -35,7 +34,6 @@ def create_app(settings_override=None):
     app.config.from_object('config.flask')
 
     extensions(app)
-    app.register_blueprint(database)
 
     @app.route('/')
     def index():
@@ -48,6 +46,7 @@ def create_app(settings_override=None):
     @app.route('/debug_sentry')
     def trigger_error():
         division_by_zero = 1 / 0
+        return jsonify("I dIvIdEd By ZeRo")
 
     return app
 
@@ -60,6 +59,5 @@ def sentry():
 def extensions(app):
     debug_toolbar.init_app(app)
     from controller.reddit.schema import RedditMeme, RedditScore
-    from controller.imgflip.schema import Template
-    from controller.hive.schema import MemehubCommunity, Votable
+    from controller.stonks.schema import Template
     db.init_app(app)

@@ -99,7 +99,7 @@ def redditscore_max_ts(subreddit):
         return None
 
 def get_subs_to_scrape():
-    from controller.reddit import RedditMeme
+    from controllers.controller.reddit import RedditMeme
     try:
         subs = [
             data[0] for data in db.session.query(

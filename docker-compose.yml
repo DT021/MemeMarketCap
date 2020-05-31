@@ -1,46 +1,10 @@
 version: '3.7'
 services:
-    ngrok:
-        build: ./ngrok
-        container_name: ngrok
-        restart: unless-stopped
-        command: /bin/sh -c "ngrok authtoken ${ngrok_auth} && ngrok http backend:5000 -hostname=react.memehub.lol --log stdout"
-    memehub:
-        build: ./frontend
-        container_name: memehub
-        restart: unless-stopped
-        volumes:
-            - ./frontend:/app
-        environment:
-            - NODE_ENV=development
-        ports:
-            - '3000:3000'
-    backend:
-        build: ./backend
-        container_name: backend
-        restart: unless-stopped
-        volumes:
-            - ./backend:/app
-        env_file:
-            - ./environments/memedata.env
-            - ./environments/backend.env
-            - ./environments/hive.env
-        environment:
-            - NODE_ENV=development
-        ports:
-            - 5000:5000
-        
-    site-data:
-        image: postgres:latest
-        container_name: sitedata
-        restart: unless-stopped
-        volumes:
-            - ./backups:/backups
-            - sitedata:/var/lib/postgresql/data
-        env_file:
-            - ./environments/sitedata.env
-        ports:
-            - 2345:5432
+    # ngrok:
+    #     build: ./ngrok
+    #     container_name: ngrok
+    #     restart: unless-stopped
+    #     command: /bin/sh -c "ngrok authtoken ${ngrok_auth} && ngrok http backend:5000 -hostname=react.memehub.lol --log stdout"
     meme-data:
         image: postgres:latest
         container_name: memedata
@@ -71,15 +35,8 @@ services:
         restart: unless-stopped
         volumes:
             - ./controllers:/app
-        environment:
-            FLASK_RUN_PORT: 8000
-            FLASK_APP: controller:APP
-            FLASK_ENV: development
         env_file:
-            - ./environments/flask.env
-            - ./environments/scrapers.env
-            - ./environments/memedata.env
-            - ./environments/hive.env
+            - ./.env
         ports:
             - 8000:8000
     controller-tasks:
@@ -92,10 +49,7 @@ services:
         volumes:
             - ./controllers:/app
         env_file:
-            - ./environments/flask.env
-            - ./environments/scrapers.env
-            - ./environments/memedata.env
-            - ./environments/hive.env
+            - ./.env
     # model-server:
     #     build: ./models
     #     container_name: model_server
