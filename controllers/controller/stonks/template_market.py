@@ -55,7 +55,7 @@ class TemplateMarket(object):
 
     def template_model(self):
         model = Sequential()
-        model.add(Dense(units=stepdown_multiplier*self.output_size, activation="relu"))
+        model.add(Dense(units=4096, activation="relu"))
         model.add(Dense(units=self.output_size, activation="softmax"))
         try: model.load_weights(weights_path)
         except: pass

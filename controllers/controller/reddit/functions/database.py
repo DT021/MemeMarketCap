@@ -107,7 +107,10 @@ def get_subs_to_scrape() -> List[str]:
                 RedditMeme.subreddit
             ).group_by(
                 RedditMeme.subreddit
-            ).all() if redditscore_max_ts(data[0]) and redditscore_max_ts(data[0]) > int(time.time() - 60*60*24)
+            ).all() if (
+                redditscore_max_ts(data[0])
+                and redditscore_max_ts(data[0]) > int(time.time() - 60*60*24)
+            )
         ]
         return subs
     except:

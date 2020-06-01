@@ -17,17 +17,19 @@ from keras_applications.vgg16 import VGG16
 from pandas.core.frame import DataFrame
 
 from controller.extensions import db
+from controller.reddit.schema import RedditMeme, Redditor
 from controller.reddit.functions.constants import MONTH_TD
 from controller.reddit.functions.database import get_subs_to_scrape, redditmeme_max_ts
 from controller.reddit.functions.misc import isDeleted, round_hour_down
-from controller.reddit.functions.mp import initializer, praw_by_id
-from controller.reddit.schema import RedditMeme, Redditor
+from controller.reddit.functions.praw_mp import initializer, praw_by_id
+
 
 THE_BEGINNING = arrow.get('2020-01-01').timestamp
 FULL_SUB_LIST = ["wholesomememes"]
 img_height = 224
 img_width = 224
 img_channel = 3
+input_shape = (img_height, img_width, img_channel)
 
 PUSHSHIFT_URI = r'https://api.pushshift.io/reddit/search/submission?subreddit={}&after={}&before={}&size={}'
 
@@ -56,27 +58,22 @@ def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
 
 class RedditController:
     def __init__(self):
-        self.vgg16: VGG16 = VGG16(
-            weights='imagenet',
-            input_shape=(img_height, img_width, img_channel),
-            include_top=False
-        )
+        self.vgg16 = VGG16(weights='imagenet', input_shape=input_shape, include_top=False)
     def stream(
         self,
         subreddit: str,
         start_time: int,
         end_time: int
     ) -> Iterator[List[Dict[str, Any]]]:
-        for post_ids in chain.from_iterable(query_pushshift(subreddit, start_time, end_time)):
+        for id_iter in query_pushshift(subreddit, start_time, end_time):
             with Pool(cpu_count(), initializer) as workers:
-                yield list(workers.imap_unordered(praw_by_id, post_ids))
+                yield list(workers.imap_unordered(praw_by_id, id_iter))
         raise StopIteration()
 
     def extraction(
         self,
         data: List[Dict[str, Any]]
     ) -> Tuple[List[Dict[str, Any]], np.ndarray]:
-        
         memes = []
         imgs = []
         for item in data:
@@ -90,8 +87,8 @@ class RedditController:
                 if isDeleted(image_cv):
                     continue
                 item["meme_text"] = pytesseract.image_to_string(image_cv)
-                imgs.extend(cv2.resize(image_cv, (img_height, img_width)))
-                memes.extend(item)
+                imgs.append(cv2.resize(image_cv, (img_height, img_width)))
+                memes.append(item)
         return memes, self.vgg16.predict(np.array(imgs))
 
     def update(self, full: bool = False) -> None:
@@ -105,14 +102,14 @@ class RedditController:
                 for data in self.stream(sub, max_ts, max_ts + MONTH_TD):
                     memes, features = self.extraction(data)
                     for meme, features in zip(memes, features):
-                        this_redditor = db.session.query(
+                        redditor = db.session.query(
                             Redditor
                         ).filter_by(
                             username = meme["redditor"]
                         ).one()
-                        if not this_redditor:
-                            this_redditor = Redditor(username=meme["redditor"])
-                            db.session.add(this_redditor)
-                        this_redditor.memes.append(RedditMeme(**meme, features=features))
+                        if not redditor:
+                            redditor = Redditor(username=meme["redditor"])
+                            db.session.add(redditor)
+                        redditor.memes.append(RedditMeme(**meme, features=features.flatten().tolist()))
                     db.session.commit()
                     max_ts = max(max_ts, max(item["timestamp"] for item in data))

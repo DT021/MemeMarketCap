@@ -22,7 +22,7 @@ CELERY_REDIS_MAX_CONNECTIONS = 5
 
 CELERYBEAT_SCHEDULE = {
     'reddit_memes_scrapper': {
-        'task': 'scrapper.scrape_subreddit_list',
+        'task': 'Reddit',
         'schedule': crontab(minute=0, hour='*')
     },
 }

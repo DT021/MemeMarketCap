@@ -13,7 +13,10 @@ class RedditReDB:
         self.reconn.execute_command('JSON.SET', name, path, json.dumps(obj))
     @property
     def current(self):
-        return [ {"overview": json.loads(self.reconn.execute_command('JSON.GET', "overview", "."))}, {"top_month": json.loads(self.reconn.execute_command('JSON.GET', "top_month", "."))} ]
+        return [
+            {"overview": json.loads(self.reconn.execute_command('JSON.GET', "overview", "."))},
+            {"top_month": json.loads(self.reconn.execute_command('JSON.GET', "top_month", "."))}
+        ]
     @property
     def serialize(self):
         return [ {"overview": self.overview}, {"top_month": self.top_month} ]

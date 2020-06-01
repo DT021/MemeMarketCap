@@ -1,1 +1,1 @@
-from .scraper import *
+from .reddit import Reddit

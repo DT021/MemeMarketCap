@@ -1,3 +1,4 @@
+from controller.reddit.redb import RedditReDB
 from flask import (Flask, jsonify, render_template, Blueprint, redirect, url_for)
 from flask_migrate import Migrate
 from celery import Celery
@@ -6,11 +7,10 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from controller.reddit.classes import RedditReDB
 from controller.sentry import integrate_sentry
 from controller.extensions import debug_toolbar,db
 
-CELERY_TASK_LIST = ['controller.reddit.tasks','controller.imgflip.tasks']
+CELERY_TASK_LIST = ['controller.tasks']
 def create_celery_app(app=None):
     app = app or create_app()
     celery = Celery(
@@ -59,5 +59,4 @@ def sentry():
 def extensions(app):
     debug_toolbar.init_app(app)
     from controller.reddit.schema import RedditMeme, RedditScore
-    from controller.stonks.schema import Template
     db.init_app(app)

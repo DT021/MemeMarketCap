@@ -1,11 +1,25 @@
 from billiard import current_process
 from praw.reddit import Submission
 
-from controller.reddit.functions.praw import extract_data, init_reddit
+from datetime import datetime
+from praw import Reddit
+from json import loads
+from decouple import config
+
+def init_reddit(id):
+    env_var_key = 'reddit_oauth_'+str(id)
+    reddit_oauth = loads(config(env_var_key))
+    return Reddit(
+        client_id=reddit_oauth['CLIENT_ID'],
+        client_secret=reddit_oauth['CLIENT_SECRET'],
+        password=reddit_oauth['PASSWORD'],
+        user_agent=reddit_oauth['USER_AGENT'],
+        username=reddit_oauth['USERNAME']
+    )
 
 NUM_REDDIT_INSTANCES = 8
-reddit_objs = [init_reddit(i) for i in range(8)]
 reddit = None
+reddit_objs = [init_reddit(i) for i in range(8)]
 
 def initializer():
     try:
@@ -32,3 +46,17 @@ def praw_by_id(submission_id):
             if any(submission.url.endswith(filetype) for filetype in [".jpg", ".jpeg", ".png"]):
                 return extract_data(submission)
     except: pass
+
+def extract_data(submission):
+    return {
+        "reddit_id": submission.id,
+        "title": submission.title,
+        "redditor": str(submission.author),
+        "timestamp": submission.created_utc,
+        "datetime": datetime.fromtimestamp(submission.created_utc),
+        "url": submission.url,
+        "upvote_ratio": submission.upvote_ratio,
+        "upvotes": submission.score,
+        "downvotes": round(submission.score / submission.upvote_ratio) - submission.score,
+        "num_comments": submission.num_comments
+    }
