@@ -1,10 +1,6 @@
 from cv2 import cv2
 import numpy as np
 
-def chunks(lst, n):
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
-
 def round_hour(ts):
     q, r = divmod(ts, 3600)
     return (q+1 if r >=1800 else q) * 3600

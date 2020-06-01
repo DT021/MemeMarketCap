@@ -59,6 +59,7 @@ class DataBuilder:
                 raw_batch = list(workers.imap_unordered(self.get_template_data, pages))
             start_page=end_page
             yield chain.from_iterable(raw_batch)
+        raise StopIteration()
 
     def extract_img_np_batch(self, page_number: int) -> Optional[list]:
         with requests.get(self.current_page.format(page_number)) as page:

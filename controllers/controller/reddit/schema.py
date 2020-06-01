@@ -1,7 +1,10 @@
-from controller.extensions import db
-from controller.reddit.functions import dump_datetime
+from controller.reddit.functions.misc import dump_datetime
+from sqlalchemy.types import ARRAY
 
-class Redditors(db.Model):
+from controller.extensions import db
+
+
+class Redditor(db.Model):
     __tablename__ = 'redditors'
     __bind_key__ = 'memedata'
 
@@ -27,8 +30,8 @@ class RedditMeme(db.Model):
     upvote_ratio = db.Column(db.Float, nullable=False)
     upvotes = db.Column(db.Integer, nullable=False)
     downvotes = db.Column(db.Integer, nullable=False)
-    nsfw = db.Column(db.String(10))
     num_comments = db.Column(db.Integer, nullable=False)
+    features = db.Column(ARRAY(db.Float), nullable=False)
 
     @property
     def serialize(self):
@@ -45,7 +48,6 @@ class RedditMeme(db.Model):
             "upvote_ratio": self.upvote_ratio,
             "upvotes": self.upvotes,
             "downvotes": self.downvotes,
-            "nsfw": self.nsfw,
             'num_comments': self.num_comments
         }
 

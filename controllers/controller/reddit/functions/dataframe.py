@@ -65,3 +65,4 @@ score_columns = [
 def score_kwargs_gen(df):
     for _, row in df.iterrows():
         yield {column: row[column] for column in score_columns}
+    raise StopIteration()
