@@ -1,9 +1,9 @@
 from billiard import current_process
 from praw.reddit import Submission
 
-from controller.reddit.functions.constants import (FILE_TYPES, NUM_REDDIT_INSTANCES)
 from controller.reddit.functions.praw import extract_data, init_reddit
 
+NUM_REDDIT_INSTANCES = 8
 reddit_objs = [init_reddit(i) for i in range(8)]
 reddit = None
 
@@ -29,6 +29,6 @@ def praw_by_id(submission_id):
     try:
         submission: Submission = reddit.submission(id=submission_id)
         if not submission.stickied:
-            if any(submission.url.endswith(filetype) for filetype in FILE_TYPES):
+            if any(submission.url.endswith(filetype) for filetype in [".jpg", ".jpeg", ".png"]):
                 return extract_data(submission)
     except: pass

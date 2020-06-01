@@ -1,8 +1,11 @@
-import redis, json, ast
+from controller.reddit.functions.constants import DAY_TD, MONTH_TD, WEEK_TD
+from controller.reddit.functions.database import num_posts, percent_change, redditscore_max_ts, redditscore_min_ts
+import redis, json
 from sqlalchemy import and_, func
 from controller.extensions import db
 from controller.reddit import RedditMeme, RedditScore
 from controller.reddit.functions import *
+
 class RedditReDB:
     def __init__(self, full=True, build=True):
         self.reconn = redis.StrictRedis(host='rejson', port=6379, db=0)

@@ -1,8 +1,9 @@
+from typing import List
 from controller.extensions import db
 from sqlalchemy import and_, func
 import time
 
-def num_posts(subreddit, start, end):
+def num_posts(subreddit: str, start: int, end: int) -> int:
     from controller.reddit import RedditMeme
     try:
         return (
@@ -15,9 +16,9 @@ def num_posts(subreddit, start, end):
             ).count()
         )
     except:
-        return None
+        return 0
 
-def percent_change(subreddit, start, end):
+def percent_change(subreddit: str, start: int, end: int) -> float:
     from controller.reddit import RedditMeme
     try:
         current = (
@@ -40,9 +41,9 @@ def percent_change(subreddit, start, end):
         )
         return round(100*(current - previous)/previous, 2)
     except:
-        return None
+        return 0
 
-def redditmeme_min_ts(subreddit):
+def redditmeme_min_ts(subreddit: str) -> int:
     from controller.reddit import RedditMeme
     try:
         min_ts = int(
@@ -54,9 +55,9 @@ def redditmeme_min_ts(subreddit):
         )
         return min_ts
     except:
-        return None
+        return 0
 
-def redditmeme_max_ts(subreddit):
+def redditmeme_max_ts(subreddit: str) -> int:
     from controller.reddit import RedditMeme
     try:
         max_ts = int(
@@ -68,9 +69,9 @@ def redditmeme_max_ts(subreddit):
         )
         return max_ts
     except:
-        return None
+        return 0
 
-def redditscore_min_ts(subreddit):
+def redditscore_min_ts(subreddit: str) -> int:
     from controller.reddit import RedditScore
     try:
         min_ts = int(
@@ -82,9 +83,9 @@ def redditscore_min_ts(subreddit):
         )
         return min_ts
     except:
-        return None
+        return 0
 
-def redditscore_max_ts(subreddit):
+def redditscore_max_ts(subreddit: str) -> int:
     from controller.reddit import RedditScore
     try:
         max_ts = int(
@@ -96,12 +97,12 @@ def redditscore_max_ts(subreddit):
         )
         return max_ts
     except:
-        return None
+        return 0
 
-def get_subs_to_scrape():
-    from controllers.controller.reddit import RedditMeme
+def get_subs_to_scrape() -> List[str]:
+    from controller.reddit import RedditMeme
     try:
-        subs = [
+        subs: List[str] = [
             data[0] for data in db.session.query(
                 RedditMeme.subreddit
             ).group_by(
@@ -110,18 +111,4 @@ def get_subs_to_scrape():
         ]
         return subs
     except:
-        raise('no subs found')
-
-def get_subreddit_list():
-    from controller.reddit import RedditMeme
-    try:
-        subs = [
-            data[0] for data in db.session.query(
-                RedditMeme.subreddit
-            ).group_by(
-                RedditMeme.subreddit
-            ).all()
-        ]
-        return subs
-    except:
-        raise('no subs found')
+        raise Exception('no subs found')

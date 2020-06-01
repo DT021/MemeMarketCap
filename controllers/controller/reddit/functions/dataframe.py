@@ -45,7 +45,6 @@ def score_df(df):
 
     raw_scores = [scores_dict[author]['score'] for author in authors]
     final_scores = 50/(2.2*stdev(log(raw_scores)))*log(raw_scores)+50
-    now = int(time())
 
     return pd.DataFrame({
         'author': authors,
