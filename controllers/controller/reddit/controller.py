@@ -43,7 +43,6 @@ def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
         new_start_at = posts[-1]['created_utc'] - 10
         n = len(posts)
         yield map(lambda post: post['id'], posts)
-    raise StopIteration()
 
 vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
 
@@ -57,7 +56,6 @@ class RedditController:
         for id_iter in query_pushshift(subreddit, start_time, end_time):
             with Pool(cpu_count(), initializer) as workers:
                 yield list(workers.imap_unordered(praw_by_id, id_iter))
-        raise StopIteration()
 
     def extraction(
         self,
@@ -83,7 +81,7 @@ class RedditController:
         return zip(memes, vgg16.predict(np.array(imgs)))
 
     def engine(self, sub: str, max_ts: int):
-        for data in self.stream(sub, max_ts, max_ts + MONTH_TD):
+        for data in self.stream(sub, max_ts, min(max_ts + MONTH_TD, self.now)):
             max_ts = max(max_ts, max(item["timestamp"] for item in data if item))
             for meme, features in self.extraction(data):
                 redditors = db.session.query(Redditor)
@@ -97,11 +95,11 @@ class RedditController:
         return max_ts
 
     def update(self, full: bool = False) -> None:
-        now = round_hour_down(arrow.utcnow().timestamp)
+        self.now = round_hour_down(arrow.utcnow().timestamp)
         subs = FULL_SUB_LIST if full else get_subs_to_scrape()
         for sub in subs:
             max_ts = redditmeme_max_ts(sub)
             if not max_ts:
                 max_ts = THE_BEGINNING
-            while max_ts <= now:
+            while max_ts <= self.now:
                 max_ts = self.engine(sub, max_ts)
