@@ -1,8 +1,10 @@
 # syntax = docker/dockerfile:experimental
 FROM python:3.7.6-buster
 
-RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt apt-get update \
-	&& apt-get install -qq -y build-essential libpq-dev sqlite3 libsqlite3-dev python3-setuptools --no-install-recommends
+RUN --mount=type=cache,target=/var/cache/apt \
+	--mount=type=cache,target=/var/lib/apt apt-get update \
+	&& apt-get install -qq -y build-essential libpq-dev tesseract-ocr \
+	sqlite3 libsqlite3-dev python3-setuptools --no-install-recommends
 
 ENV INSTALL_PATH /app
 RUN mkdir $INSTALL_PATH
@@ -10,12 +12,6 @@ WORKDIR $INSTALL_PATH
 
 ENV PYTHONUNBUFFERED 1
 USER root
-
-RUN pip install Click
-RUN git clone https://github.com/Distortedlogic/beem.git
-RUN cd beem &&\
-	python setup.py build &&\
-	python setup.py install --user
 
 COPY requirements.txt requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt

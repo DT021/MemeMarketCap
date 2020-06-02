@@ -51,7 +51,7 @@ def extract_data(submission):
     return {
         "reddit_id": submission.id,
         "title": submission.title,
-        "redditor": str(submission.author),
+        "username": str(submission.author),
         "timestamp": submission.created_utc,
         "datetime": datetime.fromtimestamp(submission.created_utc),
         "url": submission.url,

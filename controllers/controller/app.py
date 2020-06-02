@@ -10,7 +10,7 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from controller.sentry import integrate_sentry
 from controller.extensions import debug_toolbar,db
 
-CELERY_TASK_LIST = ['controller.tasks']
+CELERY_TASK_LIST = [] # ['controller.tasks']
 def create_celery_app(app=None):
     app = app or create_app()
     celery = Celery(
@@ -58,5 +58,5 @@ def sentry():
 
 def extensions(app):
     debug_toolbar.init_app(app)
-    from controller.reddit.schema import RedditMeme, RedditScore
+    from controller.reddit.schema import RedditMeme, RedditScore, Redditor
     db.init_app(app)

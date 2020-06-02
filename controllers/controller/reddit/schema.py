@@ -1,7 +1,7 @@
-from controller.reddit.functions.misc import dump_datetime
 from sqlalchemy.types import ARRAY
 
 from controller.extensions import db
+from controller.reddit.functions.misc import dump_datetime
 
 
 class Redditor(db.Model):
@@ -9,21 +9,21 @@ class Redditor(db.Model):
     __bind_key__ = 'memedata'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False)
-    memes = db.relationship('reddit_memes', backref='redditor', lazy=True)
-    scores = db.relationship('reddit_scores', backref='redditor', lazy=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    memes = db.relationship('RedditMeme', backref='redditor', lazy=True)
+    scores = db.relationship('RedditScore', backref='redditor', lazy=True)
 
 class RedditMeme(db.Model):
     __tablename__ = 'reddit_memes'
     __bind_key__ = 'memedata'
 
     id = db.Column(db.Integer, primary_key=True)
-    redditor = db.Column(db.String(20), db.ForeignKey('redditor.username'), nullable=False)
+    username = db.Column(db.String(20), db.ForeignKey('redditors.username'), nullable=False)
     reddit_id = db.Column(db.String(20), nullable=False)
     subreddit = db.Column(db.String(50), nullable=False)
     title = db.Column(db.String(500), nullable=False)
     url = db.Column(db.String(200), nullable=False)
-    meme_text = db.Column(db.String(500))
+    meme_text = db.Column(db.String(10000))
     template = db.Column(db.String(100))
     timestamp = db.Column(db.Integer, nullable=False)
     datetime = db.Column(db.DateTime, nullable=False)
@@ -39,7 +39,7 @@ class RedditMeme(db.Model):
             "reddit_id": self.reddit_id,
             "subreddit": self.subreddit,
             "title": self.title,
-            "redditor": self.redditor,
+            "username": self.username,
             "url": self.url,
             "meme_text": self.meme_text,
             "template": self.template,
@@ -56,7 +56,7 @@ class RedditScore(db.Model):
     __bind_key__ = 'memedata'
 
     id = db.Column(db.Integer, primary_key=True)
-    redditor = db.Column(db.String(20), db.ForeignKey('redditor.username'), nullable=False)
+    username = db.Column(db.String(20), db.ForeignKey('redditors.username'), nullable=False)
     subreddit = db.Column(db.String(50), nullable=False)
 
     time_delta = db.Column(db.Integer, nullable=False)
@@ -75,7 +75,7 @@ class RedditScore(db.Model):
     @property
     def serialize(self):
         return {
-            'redditor': self.redditor,
+            'username': self.username,
             'subreddit': self.subreddit,
             'timestamp': self.timestamp,
             'datetime': dump_datetime(self.datetime),
@@ -92,7 +92,7 @@ class RedditScore(db.Model):
     @property
     def stats(self):
         return {
-            'redditor': self.redditor,
+            'username': self.username,
             'final_score': self.final_score,
             'num_in_bottom': self.num_in_bottom,
             'num_in_top': self.num_in_top,

@@ -1,37 +1,26 @@
-from typing import Any, Dict, Iterator, List, Tuple
-
 import json
 import time
-import requests
-import arrow
-import pytesseract
-import requests
+from itertools import chain
+from typing import Any, Dict, Iterator, List, Tuple
 
+import arrow
 import numpy as np
 import pandas as pd
-import cv2 as cv2
-
-from itertools import chain
+import keras
+import pytesseract
+import requests
 from billiard import Pool, cpu_count
-from keras_applications.vgg16 import VGG16
+from keras.applications.vgg16 import VGG16
 from pandas.core.frame import DataFrame
 
+import cv2 as cv2
 from controller.extensions import db
-from controller.reddit.schema import RedditMeme, Redditor
-from controller.reddit.functions.constants import MONTH_TD
+from controller.reddit.functions.constants import BATCH_SIZE, FULL_SUB_LIST, IMG_CHANNEL, IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE, MONTH_TD, PUSHSHIFT_URI, THE_BEGINNING
 from controller.reddit.functions.database import get_subs_to_scrape, redditmeme_max_ts
 from controller.reddit.functions.misc import isDeleted, round_hour_down
 from controller.reddit.functions.praw_mp import initializer, praw_by_id
+from controller.reddit.schema import RedditMeme, Redditor
 
-
-THE_BEGINNING = arrow.get('2020-01-01').timestamp
-FULL_SUB_LIST = ["wholesomememes"]
-img_height = 224
-img_width = 224
-img_channel = 3
-input_shape = (img_height, img_width, img_channel)
-
-PUSHSHIFT_URI = r'https://api.pushshift.io/reddit/search/submission?subreddit={}&after={}&before={}&size={}'
 
 def make_request(uri):
     current_tries = 0
@@ -56,9 +45,9 @@ def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
         yield map(lambda post: post['id'], posts)
     raise StopIteration()
 
+vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
+
 class RedditController:
-    def __init__(self):
-        self.vgg16 = VGG16(weights='imagenet', input_shape=input_shape, include_top=False)
     def stream(
         self,
         subreddit: str,
@@ -73,23 +62,39 @@ class RedditController:
     def extraction(
         self,
         data: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], np.ndarray]:
+    ) -> Iterator[Tuple[Dict[str, Any], np.ndarray]]:
         memes = []
         imgs = []
         for item in data:
-            if item and item["redditor"]:
+            if item and item["username"] != 'None':
                 try:
                     resp = requests.get(item["url"], stream=True).raw
-                    image_np = np.asarray(bytearray(resp.read()), dtype=np.uint8)
+                    image = np.asarray(bytearray(resp.read()), dtype=np.uint8)
+                    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    item["meme_text"] = pytesseract.image_to_string(image)
+                    image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
                 except:
                     continue
-                image_cv = cv2.imdecode(image_np, cv2.COLOR_BGR2RGB)
-                if isDeleted(image_cv):
-                    continue
-                item["meme_text"] = pytesseract.image_to_string(image_cv)
-                imgs.append(cv2.resize(image_cv, (img_height, img_width)))
+                # if isDeleted(image_cv):
+                #     continue
+                imgs.append(image)
                 memes.append(item)
-        return memes, self.vgg16.predict(np.array(imgs))
+        return zip(memes, vgg16.predict(np.array(imgs)))
+
+    def engine(self, sub: str, max_ts: int):
+        for data in self.stream(sub, max_ts, max_ts + MONTH_TD):
+            max_ts = max(max_ts, max(item["timestamp"] for item in data if item))
+            for meme, features in self.extraction(data):
+                redditors = db.session.query(Redditor)
+                try:
+                    redditor = redditors.filter_by(username = meme["username"]).one()
+                except:
+                    redditor = Redditor(username=meme["username"])
+                    db.session.add(redditor)
+                db.session.add(RedditMeme(**meme, subreddit=sub, features=features.flatten().tolist()))
+            db.session.commit()
+        return max_ts
 
     def update(self, full: bool = False) -> None:
         now = round_hour_down(arrow.utcnow().timestamp)
@@ -99,17 +104,4 @@ class RedditController:
             if not max_ts:
                 max_ts = THE_BEGINNING
             while max_ts <= now:
-                for data in self.stream(sub, max_ts, max_ts + MONTH_TD):
-                    memes, features = self.extraction(data)
-                    for meme, features in zip(memes, features):
-                        redditor = db.session.query(
-                            Redditor
-                        ).filter_by(
-                            username = meme["redditor"]
-                        ).one()
-                        if not redditor:
-                            redditor = Redditor(username=meme["redditor"])
-                            db.session.add(redditor)
-                        redditor.memes.append(RedditMeme(**meme, features=features.flatten().tolist()))
-                    db.session.commit()
-                    max_ts = max(max_ts, max(item["timestamp"] for item in data))
+                max_ts = self.engine(sub, max_ts)

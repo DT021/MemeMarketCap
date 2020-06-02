@@ -1,6 +1,6 @@
 import click
 from controller import APP
-from controller.generators.classes.simulator import Simulator
+from controller.generators.simulator import Simulator
 
 @click.group()
 def cli():
