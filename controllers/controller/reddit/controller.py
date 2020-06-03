@@ -39,7 +39,10 @@ def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
     new_start_at = start_at
     while n == SIZE:
         url = PUSHSHIFT_URI.format(subreddit, new_start_at, end_at, SIZE)
-        posts = make_request(url)['data']
+        raw = make_request(url)
+        if not raw:
+            break
+        posts = raw['data']
         new_start_at = posts[-1]['created_utc'] - 10
         n = len(posts)
         yield map(lambda post: post['id'], posts)
@@ -90,6 +93,7 @@ class RedditController:
                 except:
                     redditor = Redditor(username=meme["username"])
                     db.session.add(redditor)
+                    db.session.commit()
                 db.session.add(RedditMeme(**meme, subreddit=sub, features=features.flatten().tolist()))
             db.session.commit()
         return max_ts

@@ -59,4 +59,5 @@ def sentry():
 def extensions(app):
     debug_toolbar.init_app(app)
     from controller.reddit.schema import RedditMeme, RedditScore, Redditor
+    from controller.stonks.schema import TrainData
     db.init_app(app)
