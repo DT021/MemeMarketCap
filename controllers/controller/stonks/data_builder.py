@@ -1,22 +1,34 @@
 import io
 from itertools import chain
 from multiprocessing import Pool, cpu_count
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
+import cv2 as cv2
 import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-import cv2 as cv2
+from keras_preprocessing.image.image_data_generator import ImageDataGenerator
 from sqlalchemy import func
 
 from controller import APP
-from controller.extensions import db
 from controller.constants import IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE
-from controller.stonks.schema import TrainData, Template
+from controller.extensions import db
+from controller.stonks.schema import Template, TrainData
 
 IMG_FLIP_URI = 'https://imgflip.com/memetemplates?page={}'
 NUM_WORKERS = 8
+num_batches = 32
+
+datagen = ImageDataGenerator(
+    rotation_range=40,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest'
+)
 
 def extract_img(url) -> Optional[np.ndarray]:
     try:
@@ -58,44 +70,30 @@ class DataBuilder:
             db.session.add_all(Template(**template) for template in chain.from_iterable(raw_batch))
             db.session.commit()
 
-    def extract_img_np_batch(self, page_number: int) -> Optional[list]:
-        with requests.get(self.current_page.format(page_number)) as page:
-            soup = BeautifulSoup(page.text, 'lxml')
+    def extract_imgs(self, page: str) -> list:
+        with requests.get(page.format(1)) as resp:
+            soup = BeautifulSoup(resp.text, 'lxml')
         meme_containers = soup.find_all('img', class_='base-img')
-        if meme_containers:
-            return [extract_img("https:" + meme['src']) for meme in meme_containers]
-        else:
-            self.found_empty_page = True
+        return [extract_img("https:" + meme['src']) for meme in meme_containers]
 
     def run(self, page_limit: int = 20) -> None:
         templates = db.session.query(Template).all()
         if not templates:
             self.build_template_db()
             templates = db.session.query(Template).all()
-        for template in templates:
-            self.found_empty_page = False
-            self.current_page = template.page
-            start_page = db.session.query(
-                func.max(TrainData.end_page)
-            ).filter_by(
-                name = template.name
-            ).scalar()
-            if not start_page:
-                start_page = 1
-            self.page_limit = page_limit + start_page
-            while not self.found_empty_page and start_page <= self.page_limit:
-                end_page = start_page + self.step_size
-                pages = range(start_page, end_page)
-                with Pool(NUM_WORKERS) as workers:
-                    imgs = list(workers.imap_unordered(self.extract_img_np_batch, pages))
-                from keras.applications.vgg16 import VGG16
-                vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
-                img_features = vgg16.predict(np.array(list(chain.from_iterable(imgs))))
-                for features in img_features:
-                    db.session.add(TrainData(
-                        name = template.name,
-                        end_page = end_page,
-                        features = features.flatten().tolist()
-                    ))
-                db.session.commit()
-                start_page = end_page
+        names = (template.name for template in templates)
+        pages = (template.page for template in templates)
+        from keras.applications.vgg16 import VGG16
+        vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
+        for name, page in zip(names, pages):
+            imgs = self.extract_imgs(page)
+            transformer = datagen.flow(np.array(imgs), batch_size=num_batches * len(imgs))
+            batch = np.array(next(transformer))
+            train_data = (
+                TrainData(
+                    name = name,
+                    features = features.flatten().tolist()
+                ) for features in vgg16.predict(batch)
+            )
+            db.session.add_all(train_data)
+            db.session.commit()
