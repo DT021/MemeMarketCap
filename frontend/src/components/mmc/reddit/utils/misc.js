@@ -1,1 +1,0 @@
-export const filter_by_subreddit = (top, sub) => top.data.filter(item => {return item[0].sub === sub});
