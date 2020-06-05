@@ -1,0 +1,56 @@
+[
+   {
+      "name": "default",
+      "type": "postgres",
+      "host": "sitedata",
+      "port": 5432,
+      "username": "postgres",
+      "password": "postgres",
+      "database": "postgres",
+      "synchronize": true,
+      "logging": false,
+      "entities": [
+         "src/models/comment/Comment.ts",
+         "src/models/meme/Meme.ts",
+         "src/models/user/User.ts",
+         "src/models/CommentVote.ts",
+         "src/models/MemeVote.ts"
+      ],
+      "migrations": [
+         "src/migration/**/*.ts"
+      ],
+      "subscribers": [
+         "src/subscriber/**/*.ts"
+      ],
+      "cli": {
+         "entitiesDir": "src/entity",
+         "migrationsDir": "src/migration",
+         "subscribersDir": "src/subscriber"
+      }
+   },
+   {
+      "name": "memedata",
+      "type": "postgres",
+      "host": "postgres",
+      "port": 5432,
+      "username": "postgres",
+      "password": "postgres",
+      "database": "postgres",
+      "synchronize": false,
+      "logging": false,
+      "entities": [
+         "src/generated/memedata/**/*.ts"
+      ],
+      "migrations": [
+         "src/migration/**/*.ts"
+      ],
+      "subscribers": [
+         "src/subscriber/**/*.ts"
+      ],
+      "cli": {
+         "entitiesDir": "src/entity",
+         "migrationsDir": "src/migration",
+         "subscribersDir": "src/subscriber"
+      }
+   }
+]

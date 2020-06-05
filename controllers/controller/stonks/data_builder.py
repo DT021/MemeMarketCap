@@ -87,8 +87,9 @@ class DataBuilder:
         vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
         for name, page in zip(names, pages):
             imgs = self.extract_imgs(page)
-            transformer = datagen.flow(np.array(imgs), batch_size=num_batches * len(imgs))
-            batch = np.array(next(transformer))
+            transformer = datagen.flow(np.array(imgs))
+            transformed_imgs = [next(transformer) for _ in range(num_batches)]
+            batch = np.array(transformed_imgs)
             train_data = (
                 TrainData(
                     name = name,

@@ -78,7 +78,7 @@ class TemplateMarket(object):
         return cls.TemplateMarket
 
     def train_data(self) -> Iterator[DataFrame]:
-        step = 50_000
+        step = 10_000
         count = db.session.query(TrainData).count()
         for i in range(0, count, step):
             q = db.session.query(TrainData).offset(i).limit(step).statement

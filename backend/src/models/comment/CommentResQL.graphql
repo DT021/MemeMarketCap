@@ -1,0 +1,14 @@
+mutation PostComment($text: String!, $memeId: Int!) {
+    postComment(text: $text, memeId: $memeId)
+}
+mutation CommentData($memeId: Int!) {
+    commentData(memeId: $memeId){
+        id
+        text
+        createdAt
+        username
+        avatar
+        ups
+        downs
+    }
+}
