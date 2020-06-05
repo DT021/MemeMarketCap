@@ -15,7 +15,7 @@ from pandas.core.frame import DataFrame
 
 import cv2 as cv2
 from controller.extensions import db
-from controller.reddit.functions.constants import BATCH_SIZE, FULL_SUB_LIST, IMG_CHANNEL, IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE, MONTH_TD, PUSHSHIFT_URI, THE_BEGINNING
+from controller.constants import BATCH_SIZE, FULL_SUB_LIST, IMG_CHANNEL, IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE, MONTH_TD, PUSHSHIFT_URI, THE_BEGINNING
 from controller.reddit.functions.database import get_subs_to_scrape, redditmeme_max_ts
 from controller.reddit.functions.misc import isDeleted, round_hour_down
 from controller.reddit.functions.praw_mp import initializer, praw_by_id

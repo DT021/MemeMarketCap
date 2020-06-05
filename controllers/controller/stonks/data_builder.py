@@ -12,7 +12,7 @@ from sqlalchemy import func
 
 from controller import APP
 from controller.extensions import db
-from controller.reddit.functions.constants import IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE
+from controller.constants import IMG_HEIGHT, IMG_WIDTH, INPUT_SHAPE
 from controller.stonks.schema import TrainData, Template
 
 IMG_FLIP_URI = 'https://imgflip.com/memetemplates?page={}'
@@ -67,13 +67,12 @@ class DataBuilder:
         else:
             self.found_empty_page = True
 
-    def run(self, page_limit: int = 1) -> None:
+    def run(self, page_limit: int = 20) -> None:
         templates = db.session.query(Template).all()
         if not templates:
             self.build_template_db()
             templates = db.session.query(Template).all()
-        for idx, template in enumerate(templates):
-            if idx > 3: break
+        for template in templates:
             self.found_empty_page = False
             self.current_page = template.page
             start_page = db.session.query(

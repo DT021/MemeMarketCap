@@ -1,4 +1,4 @@
-from controller.reddit.functions.constants import DAY_TD, MONTH_TD, WEEK_TD
+from controller.constants import DAY_TD, FULL_SUB_LIST, MONTH_TD, WEEK_TD
 from controller.reddit.functions.database import num_posts, percent_change, redditscore_max_ts, redditscore_min_ts
 import redis, json
 from sqlalchemy import and_, func
@@ -21,7 +21,7 @@ class RedditReDB:
     def serialize(self):
         return [ {"overview": self.overview}, {"top_month": self.top_month} ]
     def build(self):
-        self.subreddit_list = get_subreddit_list()
+        self.subreddit_list = FULL_SUB_LIST
         self.overview = { "totals": {"Daily": [], "Weekly": [], "Monthly": [], "Ever": [] }}
         self.top_month = { "data": [] }
         for idx, subreddit in enumerate(self.subreddit_list):

@@ -63,18 +63,17 @@ services:
     #     ports:
     #         - 8080:8080
 
-    # notebook-server:
-    #     build: ./jupyter
-    #     container_name: notebook_server
-    #     restart: unless-stopped
-    #     command: jupyter lab
-    #     volumes:
-    #         - ./jupyter/notebooks:/notebooks
-    #     env_file:
-    #         - ./environments/hive.env
-    #         - ./environments/jupyter.env
-    #     ports:
-    #         - 8888:8888
+    notebook-server:
+        build: .
+        container_name: notebook_server
+        restart: unless-stopped
+        command: jupyter lab
+        volumes:
+            - ./notebooks:/notebooks
+        env_file:
+            - ./.env
+        ports:
+            - 8888:8888
 
     # task-monitor:
     #     image: controllers-image:1.0.0
