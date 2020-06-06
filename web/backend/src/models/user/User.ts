@@ -1,11 +1,8 @@
-import { CommentVote } from '../CommentVote';
-import { MemeVote } from '../MemeVote';
-import { Comment } from '../comment/Comment';
-import { Meme } from '../meme/Meme';
+import { Wager } from './../wager/Wager';
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typeorm";
 import { ObjectType, Field, Int } from "type-graphql";
 
-const starterPic = "/dist/img/defaultAvatar.png";
+const starterPic = "/public/img/npc_default.png";
 
 @ObjectType()
 @Entity("users")
@@ -26,22 +23,6 @@ export class User extends BaseEntity {
     @Column({ default: starterPic })
     avatar: string;
 
-    @Field(() => [Meme])
-    @OneToMany(() => Meme, meme => meme.user)
-    memes: Meme[];
-
-    @Field(() => [Comment])
-    @OneToMany(() => Comment, comment => comment.user)
-    comments: Comment[];
-
-    @Field(() => [MemeVote])
-    @OneToMany(() => MemeVote, memeVote => memeVote.user)
-    memeVotes: MemeVote[];
-
-    @Field(() => [CommentVote])
-    @OneToMany(() => CommentVote, commentVote => commentVote.user)
-    commentVotes: CommentVote[];
-
     @Field(() => Date)
     @Column("timestamp", { default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
@@ -50,4 +31,8 @@ export class User extends BaseEntity {
 
     @Column("int", { default: 0 })
     tokenVersion: number;
+
+    @Field(() => [Wager])
+    @OneToMany(() => Wager, wager => wager.user)
+    wagers: Wager[];
 }

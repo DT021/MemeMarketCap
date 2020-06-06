@@ -77,10 +77,13 @@ class DataBuilder:
         return [extract_img("https:" + meme['src']) for meme in meme_containers]
 
     def run(self, page_limit: int = 20) -> None:
-        templates = db.session.query(Template).all()
-        if not templates:
+        train_names = db.session.query(TrainData.name).group_by(TrainData.name).all()
+        templates = db.session.query(Template).filter(~Template.name.in_(train_names)).all()
+        if not train_names and not templates:
             self.build_template_db()
             templates = db.session.query(Template).all()
+        elif not templates:
+            raise Exception('Done')
         names = (template.name for template in templates)
         pages = (template.page for template in templates)
         from keras.applications.vgg16 import VGG16
@@ -88,8 +91,7 @@ class DataBuilder:
         for name, page in zip(names, pages):
             imgs = self.extract_imgs(page)
             transformer = datagen.flow(np.array(imgs))
-            transformed_imgs = [next(transformer) for _ in range(num_batches)]
-            batch = np.array(transformed_imgs)
+            batch = np.concatenate(next(transformer) for _ in range(num_batches))
             train_data = (
                 TrainData(
                     name = name,

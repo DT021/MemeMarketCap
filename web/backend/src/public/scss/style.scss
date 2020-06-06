@@ -1,0 +1,56 @@
+$primary:#17a2b8;
+$theme: #000;
+$offset: #222;
+$opp: #f4f4f4;
+$danger: #dc3545;
+$success: #28a745;
+$max-width: 2100px;
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1rem; line-height: 1.6;
+    background-color: $theme;
+}
+a {
+    text-decoration: none;
+    color: $opp;
+    &:hover {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+}
+ul { list-style: none; }
+p {color: $opp;}
+img {
+    width: 100%;
+    &:hover{cursor: pointer;}
+}
+.modal-content{background-color: #111;}
+.canvas-container{ height: 400px; }
+.fa-sort-size-up-alt, .fa-th-large, .fa-cloud-upload{
+    transition: all 0.3s ease-in-out;
+    &:hover{ color: $primary; }
+}
+.fal, .far, .fab {
+    color: white;
+    &:hover{cursor: pointer;}
+}
+.fa-arrow-up{
+    color: $opp;
+    transition: all 0.3s ease-in-out;
+    &:hover{cursor: pointer; color: $success;}
+}
+.fa-arrow-down{
+    color: $opp;
+    transition: all 0.3s ease-in-out;
+    &:hover{cursor: pointer; color: $danger;}
+}
+.fa-arrow-to-bottom{margin: .7rem;}
+.fa-sign-out-alt{margin-right: 1rem; align-self: center;}
+.fa-cloud-upload{ margin-left: 1.5rem; }

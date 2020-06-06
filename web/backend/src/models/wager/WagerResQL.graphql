@@ -1,0 +1,33 @@
+query Me {
+    me {
+        id
+        username
+        avatar
+    }
+}
+mutation Register($email:String!, $password: String!, $username: String!) {
+    register(email: $email, password: $password, username:$username) {
+        accessToken
+        user {
+            id
+            avatar
+            username
+        }
+    }
+}
+mutation Login($email:String!, $password: String!) {
+    login(email: $email, password: $password) {
+        accessToken
+        user {
+            id
+            avatar
+            username
+        }
+    }
+}
+mutation Logout {
+    logout
+}
+mutation LoadRedb($key:String!, $path: String!) {
+    redb(key: $key, path: $path)
+}
