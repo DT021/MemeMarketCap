@@ -1,6 +1,6 @@
 import { Wager } from './../wager/Wager';
 import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typeorm";
-import { ObjectType, Field, Int } from "type-graphql";
+import { ObjectType, Field, Int, Float } from "type-graphql";
 
 const starterPic = "/public/img/npc_default.png";
 
@@ -27,7 +27,8 @@ export class User extends BaseEntity {
     @Column("timestamp", { default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
 
-    @Column() password: string;
+    @Column()
+    password: string;
 
     @Column("int", { default: 0 })
     tokenVersion: number;
@@ -35,4 +36,8 @@ export class User extends BaseEntity {
     @Field(() => [Wager])
     @OneToMany(() => Wager, wager => wager.user)
     wagers: Wager[];
+
+    @Field(() => Float)
+    @Column("float")
+    balance: number;
 }

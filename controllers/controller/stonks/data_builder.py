@@ -36,7 +36,8 @@ def extract_img(url) -> Optional[np.ndarray]:
         image = np.asarray(bytearray(resp.read()), dtype=np.uint8)
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
+        image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
+        return image
     except Exception as e:
         print(e)
         return

@@ -1,5 +1,6 @@
 init-mongo.js
 backups/
+controllers/controller/stonks/models/
 data/
 *.h5
 .vscode

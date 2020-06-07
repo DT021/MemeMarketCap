@@ -3,7 +3,7 @@ import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne
 import { ObjectType, Field, Int, Float } from "type-graphql";
 
 @ObjectType()
-@Entity("users")
+@Entity("wagers")
 export class Wager extends BaseEntity {
     @Field(() => Int)
     @PrimaryGeneratedColumn()

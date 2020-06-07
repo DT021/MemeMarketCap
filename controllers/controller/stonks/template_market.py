@@ -41,7 +41,7 @@ patience = 1
 epochs = 1
 
 early_stopping = EarlyStopping(
-    monitor='val_acc',
+    monitor='accuracy',
     min_delta=0,
     patience=patience,
     verbose=0,
@@ -51,7 +51,6 @@ early_stopping = EarlyStopping(
 
 def base_model():
     model = Sequential()
-    # model.add(Dense(units=25088, activation="relu"))
     model.add(Dense(units=16, activation="relu"))
     model.add(Dense(units=1, activation="sigmoid"))
     optimizer_kwargs = {
@@ -86,6 +85,7 @@ class TemplateMarket(object):
 
     def train(self) -> None:
         for df in self.train_data():
+            print(df.head())
             for name in df.name.unique():
                 model_path = MODELS_REPO + f"{name}"
                 try:
@@ -99,8 +99,4 @@ class TemplateMarket(object):
                     shuffle = True,
                     callbacks=[early_stopping]
                 )
-                try:
-                    model.save()
-                except:
-                    os.mkdir(model_path)
-                    model.save(model_path)
+                model.save(model_path)
