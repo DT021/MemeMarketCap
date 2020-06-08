@@ -5,27 +5,28 @@ import moment from 'moment';
 @EntityRepository(Wager)
 export class WagerRepo extends Repository<Wager> {
     async open(
-        id: number,
+        userId: number,
         market: string,
         position: number,
         entry: number
     ) {
-        if(!id || id === -1) return false;
+        if(!userId || userId === -1) return false;
         try {
             const newWager = new Wager();
             newWager.market = market;
             newWager.position = position;
             newWager.entry = entry;
-            newWager.userId = id;
+            newWager.userId = userId;
             await newWager.save();
             return true;
         } catch (err) { return false };
     }
     async close(
+        userId: number,
         id: number,
         exit: number
     ) {
-        if(!id || id === -1) return false;
+        if(!userId || userId === -1) return false;
         try {
             const wager = await Wager.findOne({ id })
             if(!wager) return false;

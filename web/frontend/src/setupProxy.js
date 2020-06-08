@@ -1,6 +1,6 @@
-import { createProxyMiddleware } from 'http-proxy-middleware';
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
-export default function(app: any): void {
+module.exports = function(app) {
     app.use(
         '/refreshToken',
         createProxyMiddleware({

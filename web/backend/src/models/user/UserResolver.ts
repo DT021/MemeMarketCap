@@ -12,7 +12,9 @@ export class UserResolver {
 
     @Query(() => User, {nullable: true})
     @UseMiddleware(Auth) 
-    async me(@Ctx() { payload }: ServerContext): Promise<User | undefined> {
+    async me(
+        @Ctx() { payload }: ServerContext
+    ): Promise<User | undefined> {
         return await User.findOne(payload!.user.id);
     }
 

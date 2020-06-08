@@ -1,20 +1,14 @@
 import { createStore, persist, createTypedHooks, Store } from 'easy-peasy';
 import { active, activeStore } from  './active';
 import { auth, authStore } from  './auth';
-import { localUpload, localUploadStore } from './localUpload';
-import { modal, modalStore } from './modal';
-import { sorting, sortingStore } from './sorting';
 
 export const globalStore: Store<globalStore> = createStore(persist({
-    active, auth, localUpload, modal, sorting
+    active, auth
 }));
 
 export interface globalStore {
     active: activeStore;
     auth: authStore;
-    localUpload: localUploadStore;
-    modal: modalStore;
-    sorting: sortingStore;
 }
 
 const typedHooks = createTypedHooks<globalStore>();

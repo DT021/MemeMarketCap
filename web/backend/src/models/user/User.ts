@@ -38,6 +38,6 @@ export class User extends BaseEntity {
     wagers: Wager[];
 
     @Field(() => Float)
-    @Column("float")
+    @Column("float", { default: 100 })
     balance: number;
 }

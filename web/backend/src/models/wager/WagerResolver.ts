@@ -1,60 +1,29 @@
-import { AuthResponse } from './_types';
-import { sendRefreshToken } from '../../auth';
-import { Auth, ServerContext } from '../../auth';
-import { UserRepo } from './WagerRepo';
-import { Ctx, UseMiddleware, Int } from 'type-graphql';
-import { User } from './User';
-import { Resolver, Query, Mutation, Arg } from 'type-graphql';
-import { getConnection, getCustomRepository } from 'typeorm';
+import { WagerRepo } from './WagerRepo';
+import { ServerContext } from '../../auth';
+import { Ctx, Int } from 'type-graphql';
+import { Resolver, Mutation, Arg } from 'type-graphql';
+import { getCustomRepository } from 'typeorm';
 
 @Resolver()
-export class UserResolver {
-
-    @Query(() => [User])
-    async users(): Promise<User[]> {
-        return await User.find({
-            relations: ["memes", "comments", "memeVotes", "commentVotes"]
-        });
-    }
-
-    @Query(() => User, {nullable: true})
-    @UseMiddleware(Auth) 
-    async me(@Ctx() { payload }: ServerContext): Promise<User | undefined> {
-        return await User.findOne(payload!.user.id);
-    }
-
-    @Mutation(() => AuthResponse)
-    async register(
-        @Ctx() { res }: ServerContext,
-        @Arg('email') email: string,
-        @Arg('password') password: string,
-        @Arg('username') username: string
-    ): Promise<AuthResponse> {
-        return await getCustomRepository(UserRepo).register(email, username, password, res);
+export class WagerResolver {
+    @Mutation(() => Boolean)
+    async open(
+        @Ctx() { payload }: ServerContext,
+        @Arg("market", () => String) market: string,
+        @Arg("position", () => Int) position: number,
+        @Arg("entry", () => Int) entry: number
+    ): Promise<boolean> {
+        if(!payload?.user.id) return false;
+        return await getCustomRepository(WagerRepo).open(payload?.user.id, market, position, entry);
     }
 
     @Mutation(() => Boolean)
-    async revokeRefreshTokens(
-        @Arg("id", () => Int) id:number
+    async close(
+        @Ctx() { payload }: ServerContext,
+        @Arg("id", () => Int) id: number,
+        @Arg("exit", () => Int) exit: number
     ): Promise<boolean> {
-        await getConnection().getRepository(User).increment({id}, "tokenVersion", 1);
-        return true;
-    }
-    
-    @Mutation(() => AuthResponse)
-    async login(
-        @Arg('email') email: string,
-        @Arg('password') password: string,
-        @Ctx() { res }: ServerContext
-    ): Promise<AuthResponse> {
-        return await getCustomRepository(UserRepo).login(email, password, res);
-    }
-
-    @Mutation(() => Boolean)
-    async logout(
-        @Ctx() {res}: ServerContext
-    ): Promise<boolean> {
-        sendRefreshToken(res, "");
-        return true;
+        if(!payload?.user.id) return false;
+        return await getCustomRepository(WagerRepo).close(payload?.user.id, id, exit);
     }
 }

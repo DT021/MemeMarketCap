@@ -4,7 +4,7 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { onError } from 'apollo-link-error';
 import { ApolloLink, Observable } from 'apollo-link';
 import { getAccessToken, setAccessToken } from './accessToken';
-import { TokenRefreshLink, FetchAccessToken } from 'apollo-link-token-refresh';
+import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import { createUploadLink } from "apollo-upload-client";
 import Axios from 'axios';
 

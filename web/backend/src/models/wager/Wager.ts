@@ -1,5 +1,5 @@
 import { User } from './../user/User';
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne} from "typeorm";
 import { ObjectType, Field, Int, Float } from "type-graphql";
 
 @ObjectType()
@@ -10,7 +10,7 @@ export class Wager extends BaseEntity {
     id: number;
 
     @Field(() => String)
-    @Column("string")
+    @Column()
     market: string;
 
     @Field(() => Int)
