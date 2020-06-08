@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from billiard import Pool, cpu_count
+from sqlalchemy import func
+
 from keras.callbacks import EarlyStopping
 from keras.layers import Dense
 from keras.losses import binary_crossentropy
@@ -80,23 +83,23 @@ class TemplateMarket(object):
         step = 10_000
         count = db.session.query(TrainData).count()
         for i in range(0, count, step):
-            q = db.session.query(TrainData).offset(i).limit(step).statement
+            q = db.session.query(TrainData).order_by(func.random()).offset(i).limit(step).statement
             yield pd.read_sql(q, db.session.bind)
 
-    def train(self) -> None:
+    def build(self) -> None:
+        names = db.session.query(TrainData.name).group_by(TrainData.name)
+        for name, in names:
+            self.train(name)
+
+    def train(self, name) -> None:
+        model_path = MODELS_REPO + f"{name}"
+        model = base_model()
         for df in self.train_data():
-            print(df.head())
-            for name in df.name.unique():
-                model_path = MODELS_REPO + f"{name}"
-                try:
-                    model = load_model(model_path)
-                except:
-                    model = base_model()
-                model.fit(
-                    pd.DataFrame(df["features"].tolist()).values,
-                    (df["name"] == name).values,
-                    epochs = epochs,
-                    shuffle = True,
-                    callbacks=[early_stopping]
-                )
-                model.save(model_path)
+            model.fit(
+                pd.DataFrame(df["features"].tolist()).values,
+                (df["name"] == name).values,
+                epochs = epochs,
+                shuffle = True,
+                callbacks=[early_stopping]
+            )
+        model.save(model_path)
