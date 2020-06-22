@@ -5,39 +5,39 @@ services:
     #     container_name: ngrok
     #     restart: unless-stopped
     #     command: /bin/sh -c "ngrok authtoken ${ngrok_auth} && ngrok http backend:5000 -hostname=react.memehub.lol --log stdout"
-    frontend:
-        build: ./web/frontend
-        container_name: memehub
-        restart: unless-stopped
-        volumes:
-            - ./web/frontend:/app
-        environment:
-            - NODE_ENV=development
-        ports:
-            - 3000:3000
-    backend:
-        build: ./web/backend
-        container_name: backend
-        restart: unless-stopped
-        volumes:
-            - ./web/backend:/app
-        env_file:
-            - ./.env
-        environment:
-            - NODE_ENV=development
-        ports:
-            - 5000:5000   
-    site-data:
-        image: postgres:latest
-        container_name: sitedata
-        restart: unless-stopped
-        volumes:
-            - ./backups:/backups
-            - sitedata:/var/lib/postgresql/data
-        env_file:
-            - ./.env
-        ports:
-            - 2345:5432
+    # frontend:
+    #     build: ./web/frontend
+    #     container_name: mmc
+    #     restart: unless-stopped
+    #     volumes:
+    #         - ./web/frontend:/app
+    #     environment:
+    #         - NODE_ENV=development
+    #     ports:
+    #         - 3000:3000
+    # backend:
+    #     build: ./web/backend
+    #     container_name: backend
+    #     restart: unless-stopped
+    #     volumes:
+    #         - ./web/backend:/app
+    #     env_file:
+    #         - ./.env
+    #     environment:
+    #         - NODE_ENV=development
+    #     ports:
+    #         - 5000:5000   
+    # stonk-data:
+    #     image: postgres:latest
+    #     container_name: stonkdata
+    #     restart: unless-stopped
+    #     volumes:
+    #         - ./backups:/backups
+    #         - sitedata:/var/lib/postgresql/data
+    #     env_file:
+    #         - ./.env
+    #     ports:
+    #         - 2345:5432
     meme-data:
         image: postgres:latest
         container_name: memedata
@@ -96,17 +96,17 @@ services:
     #     ports:
     #         - 8080:8080
 
-    notebook-server:
-        build: .
-        container_name: notebook_server
-        restart: unless-stopped
-        command: jupyter lab
-        volumes:
-            - ./notebooks:/notebooks
-        env_file:
-            - ./.env
-        ports:
-            - 8888:8888
+    # notebook-server:
+    #     build: .
+    #     container_name: notebook_server
+    #     restart: unless-stopped
+    #     command: jupyter lab
+    #     volumes:
+    #         - ./notebooks:/notebooks
+    #     env_file:
+    #         - ./.env
+    #     ports:
+    #         - 8888:8888
 
     # task-monitor:
     #     image: controllers-image:1.0.0

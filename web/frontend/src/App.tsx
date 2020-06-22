@@ -5,7 +5,7 @@ import { Layout } from './layout';
 import { apolloClient } from './apolloClient';
 import { globalStore } from './store/store';
 
-export const App: React.FC = () => {
+export const App = () => {
 	return (
 		<ApolloProvider client={apolloClient}>
 			<StoreProvider store={globalStore}>

@@ -14,8 +14,30 @@ export const Layout = (): JSX.Element => {
         setLoading(false);
         setAuthState(accessToken);
 	}, [setAuthState]);
-    return loading ? <>test</> : <Wrapper><Logo /></Wrapper>
+    return loading ? <>test</> : <Wrapper><Navbar /></Wrapper>
 };
+
+const Navbar = () => {
+    return <>
+        <Nav>
+            <Logo />
+            <ProfilePic />
+        </Nav>
+    </>
+};
+
+const Content = () => {
+    return <>
+        
+    </>
+};
+
+const Nav = styled.nav`
+    display: flex;
+    justify-content: space-between;
+    padding-left: 4rem;
+    padding-right: 4rem;
+`;
 
 const Wrapper = styled.div`
     display: grid;
@@ -23,10 +45,8 @@ const Wrapper = styled.div`
     grid-template-areas: 'navbar' 'content';
     overflow: auto;
     background-color: ${theme};
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding: 0;
+    margin: 0;
 `;
 
 const Logo = styled.img.attrs({
@@ -34,4 +54,12 @@ const Logo = styled.img.attrs({
     alt: "I cAnT fInD tHe ImAgE"
 })`
     width: 10vw;
+`;
+
+const ProfilePic = styled.img.attrs({
+    src: "/img/npc_default.jpg",
+    alt: "I cAnT fInD tHe ImAgE"
+})`
+    width: 3vw;
+    border-radius: 50%;
 `;
