@@ -108,6 +108,8 @@ setuptools == 46.4.0
 
 rejson == 0.5.4
 
+tqdm
+
 # not found by pigar
 gunicorn == 20.0.4
 psycopg2-binary == 2.8.4

@@ -37,6 +37,7 @@ def extract_img(url) -> Optional[np.ndarray]:
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
+        assert image.shape == (224, 224, 3)
         return image
     except Exception as e:
         print(e)
@@ -75,6 +76,8 @@ class DataBuilder:
         with requests.get(page.format(1)) as resp:
             soup = BeautifulSoup(resp.text, 'lxml')
         meme_containers = soup.find_all('img', class_='base-img')
+        # with Pool(NUM_WORKERS) as workers:
+        #     return list(workers.imap_unordered(self.get_template_data, pages))
         return [extract_img("https:" + meme['src']) for meme in meme_containers]
 
     def run(self, page_limit: int = 20) -> None:
@@ -91,13 +94,19 @@ class DataBuilder:
         vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
         for name, page in zip(names, pages):
             imgs = self.extract_imgs(page)
-            transformer = datagen.flow(np.array(imgs))
-            batch = np.concatenate(next(transformer) for _ in range(num_batches))
-            train_data = (
-                TrainData(
-                    name = name,
-                    features = features.flatten().tolist()
-                ) for features in vgg16.predict(batch)
-            )
-            db.session.add_all(train_data)
-            db.session.commit()
+            try:
+                print(name)
+                print(np.array(imgs).shape)
+                assert np.array(imgs).shape[1:] == (224, 224, 3)
+            except:
+                print('bad shape')
+            else:
+                transformer = datagen.flow(np.array(imgs))
+                batch = np.concatenate([next(transformer) for _ in range(num_batches)])
+                db.session.add_all(
+                    TrainData(
+                        name = name,
+                        features = features.flatten().tolist()
+                    ) for features in vgg16.predict(batch)
+                )
+                db.session.commit()

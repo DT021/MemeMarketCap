@@ -12,6 +12,7 @@ import requests
 from billiard import Pool, cpu_count
 from keras.applications.vgg16 import VGG16
 from pandas.core.frame import DataFrame
+from tqdm import tqdm
 
 import cv2 as cv2
 from controller.extensions import db
@@ -34,7 +35,7 @@ def make_request(uri):
             current_tries += 1
 
 def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
-    SIZE = 500
+    SIZE = 100
     n = SIZE
     new_start_at = start_at
     while n == SIZE:
@@ -49,6 +50,28 @@ def query_pushshift(subreddit, start_at, end_at) -> Iterator[Iterator[str]]:
 
 vgg16 = VGG16(weights='imagenet', input_shape=INPUT_SHAPE, include_top=False)
 
+def extraction(
+    data: List[Dict[str, Any]]
+) -> Iterator[Tuple[Dict[str, Any], np.ndarray]]:
+    memes = []
+    imgs = []
+    for item in data:
+        if item and item["username"] != 'None':
+            try:
+                resp = requests.get(item["url"], stream=True).raw
+                image = np.asarray(bytearray(resp.read()), dtype=np.uint8)
+                image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                item["meme_text"] = pytesseract.image_to_string(image)
+                image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
+            except:
+                continue
+            # if isDeleted(image_cv):
+            #     continue
+            imgs.append(image)
+            memes.append(item)
+    return zip(memes, vgg16.predict(np.array(imgs)))
+
 class RedditController:
     def stream(
         self,
@@ -60,36 +83,12 @@ class RedditController:
             with Pool(cpu_count(), initializer) as workers:
                 yield list(workers.imap_unordered(praw_by_id, id_iter))
 
-    def extraction(
-        self,
-        data: List[Dict[str, Any]]
-    ) -> Iterator[Tuple[Dict[str, Any], np.ndarray]]:
-        memes = []
-        imgs = []
-        for item in data:
-            if item and item["username"] != 'None':
-                try:
-                    resp = requests.get(item["url"], stream=True).raw
-                    image = np.asarray(bytearray(resp.read()), dtype=np.uint8)
-                    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    item["meme_text"] = pytesseract.image_to_string(image)
-                    image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH))
-                except:
-                    continue
-                # if isDeleted(image_cv):
-                #     continue
-                imgs.append(image)
-                memes.append(item)
-        return zip(memes, vgg16.predict(np.array(imgs)))
-
-    def engine(self, sub: str, max_ts: int):
+    def engine(self, sub: str, max_ts: int) -> int:
         for data in self.stream(sub, max_ts, min(max_ts + MONTH_TD, self.now)):
             max_ts = max(max_ts, max(item["timestamp"] for item in data if item))
-            for meme, features in self.extraction(data):
-                redditors = db.session.query(Redditor)
+            for meme, features in extraction(data):
                 try:
-                    redditor = redditors.filter_by(username = meme["username"]).one()
+                    redditor = db.session.query(Redditor).filter_by(username = meme["username"]).one()
                 except:
                     redditor = Redditor(username=meme["username"])
                     db.session.add(redditor)

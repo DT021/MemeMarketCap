@@ -5,39 +5,39 @@ services:
     #     container_name: ngrok
     #     restart: unless-stopped
     #     command: /bin/sh -c "ngrok authtoken ${ngrok_auth} && ngrok http backend:5000 -hostname=react.memehub.lol --log stdout"
-    # frontend:
-    #     build: ./web/frontend
-    #     container_name: mmc
-    #     restart: unless-stopped
-    #     volumes:
-    #         - ./web/frontend:/app
-    #     environment:
-    #         - NODE_ENV=development
-    #     ports:
-    #         - 3000:3000
-    # backend:
-    #     build: ./web/backend
-    #     container_name: backend
-    #     restart: unless-stopped
-    #     volumes:
-    #         - ./web/backend:/app
-    #     env_file:
-    #         - ./.env
-    #     environment:
-    #         - NODE_ENV=development
-    #     ports:
-    #         - 5000:5000   
-    # stonk-data:
-    #     image: postgres:latest
-    #     container_name: stonkdata
-    #     restart: unless-stopped
-    #     volumes:
-    #         - ./backups:/backups
-    #         - sitedata:/var/lib/postgresql/data
-    #     env_file:
-    #         - ./.env
-    #     ports:
-    #         - 2345:5432
+    frontend:
+        build: ./web/frontend
+        container_name: mmc
+        restart: unless-stopped
+        volumes:
+            - ./web/frontend:/app
+        environment:
+            - NODE_ENV=development
+        ports:
+            - 3000:3000
+    backend:
+        build: ./web/backend
+        container_name: backend
+        restart: unless-stopped
+        volumes:
+            - ./web/backend:/app
+        env_file:
+            - ./.env
+        environment:
+            - NODE_ENV=development
+        ports:
+            - 5000:5000   
+    stonk-data:
+        image: postgres:latest
+        container_name: sitedata
+        restart: unless-stopped
+        volumes:
+            - ./backups:/backups
+            - sitedata:/var/lib/postgresql/data
+        env_file:
+            - ./.env
+        ports:
+            - 2345:5432
     meme-data:
         image: postgres:latest
         container_name: memedata

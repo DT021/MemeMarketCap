@@ -2,8 +2,6 @@ from decouple import config
 from datetime import timedelta
 from celery.schedules import crontab
 
-HOUR_TD = 60*60.0
-
 # if config('FLASK_ENV') == 'development':
 #     DEBUG = True
 # else:

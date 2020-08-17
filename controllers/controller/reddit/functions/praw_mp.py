@@ -32,12 +32,18 @@ def initializer():
     global reddit
     tries = 0
     while True:
-        try: reddit = reddit_objs[worker_id]; break
+        try:
+            reddit = reddit_objs[worker_id]
+            break
         except:
-            try: reddit = init_reddit(worker_id); break
+            try:
+                reddit = init_reddit(worker_id)
+                break
             except:
-                worker_id += 1 % NUM_REDDIT_INSTANCES; tries += 1
-                if tries > 2 * NUM_REDDIT_INSTANCES: raise Exception('reddit instance error')
+                worker_id += 1 % NUM_REDDIT_INSTANCES
+                tries += 1
+                if tries > 2 * NUM_REDDIT_INSTANCES:
+                    raise Exception('reddit instance error')
 
 def praw_by_id(submission_id):
     try:

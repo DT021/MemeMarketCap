@@ -5,8 +5,8 @@ WEEK_TD = 60*60*24*7
 DAY_TD = 60*60*24
 HOUR_TD = 60*60
 
-THE_BEGINNING = arrow.get('2020-01-01').timestamp
-FULL_SUB_LIST = ["wholesomememes"] # , "HistoryMemes", "DeepFriedMemes", "dankmemes"]
+THE_BEGINNING = arrow.get('2020-08-01').timestamp
+FULL_SUB_LIST = ["wholesomememes", "HistoryMemes", "dankmemes", "memes"]
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
 IMG_CHANNEL = 3
