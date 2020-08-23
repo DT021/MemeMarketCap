@@ -9,8 +9,8 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** The javascript `Date` as string. Type represents date and time as the ISO Date string. */
   DateTime: any;
+  Upload: any;
 };
 
 export type AuthResponse = {
@@ -19,11 +19,70 @@ export type AuthResponse = {
   user?: Maybe<User>;
 };
 
+export type Comment = {
+   __typename?: 'Comment';
+  id: Scalars['Int'];
+  text: Scalars['String'];
+  userId: Scalars['Int'];
+  user: User;
+  memeId: Scalars['Int'];
+  meme: Meme;
+  commentVotes: Array<CommentVote>;
+  createdAt: Scalars['DateTime'];
+};
+
+export type CommentData = {
+   __typename?: 'CommentData';
+  id: Scalars['Int'];
+  text: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  username: Scalars['String'];
+  avatar: Scalars['String'];
+  ups: Scalars['Int'];
+  downs: Scalars['Int'];
+};
+
+export type CommentVote = {
+   __typename?: 'CommentVote';
+  id: Scalars['Int'];
+  userId: Scalars['Int'];
+  commentId: Scalars['Int'];
+  comment: Comment;
+  user: User;
+  value: Scalars['Float'];
+  createdAt: Scalars['DateTime'];
+};
+
+
+export type Meme = {
+   __typename?: 'Meme';
+  id: Scalars['Int'];
+  url: Scalars['String'];
+  userId: Scalars['Int'];
+  user: User;
+  comments: Array<Comment>;
+  memeVotes: Array<MemeVote>;
+  createdAt: Scalars['DateTime'];
+};
+
+export type MemeVote = {
+   __typename?: 'MemeVote';
+  id: Scalars['Int'];
+  userId: Scalars['Int'];
+  memeId: Scalars['Int'];
+  meme: Meme;
+  user: User;
+  value: Scalars['Float'];
+  createdAt: Scalars['DateTime'];
+};
 
 export type Mutation = {
    __typename?: 'Mutation';
-  open: Scalars['Boolean'];
-  close: Scalars['Boolean'];
+  postComment: Scalars['Boolean'];
+  commentData: Array<CommentData>;
+  postMeme: Scalars['Boolean'];
+  topMemes: Array<TopMeme>;
+  voteMeme: Scalars['Boolean'];
   redb: Scalars['String'];
   register: AuthResponse;
   revokeRefreshTokens: Scalars['Boolean'];
@@ -32,16 +91,32 @@ export type Mutation = {
 };
 
 
-export type MutationOpenArgs = {
-  entry: Scalars['Int'];
-  position: Scalars['Int'];
-  market: Scalars['String'];
+export type MutationPostCommentArgs = {
+  memeId: Scalars['Int'];
+  text: Scalars['String'];
 };
 
 
-export type MutationCloseArgs = {
-  exit: Scalars['Int'];
-  id: Scalars['Int'];
+export type MutationCommentDataArgs = {
+  memeId: Scalars['Int'];
+};
+
+
+export type MutationPostMemeArgs = {
+  file: Scalars['Upload'];
+};
+
+
+export type MutationTopMemesArgs = {
+  offset: Scalars['Int'];
+  ordering: OrderingQl;
+  days: Scalars['Int'];
+};
+
+
+export type MutationVoteMemeArgs = {
+  memeId: Scalars['Int'];
+  value: Scalars['Int'];
 };
 
 
@@ -68,10 +143,32 @@ export type MutationLoginArgs = {
   email: Scalars['String'];
 };
 
+export type OrderingQl = {
+  o1: Scalars['String'];
+  d1: Scalars['String'];
+  o2: Scalars['String'];
+  d2: Scalars['String'];
+};
+
 export type Query = {
    __typename?: 'Query';
+  myMemes?: Maybe<Meme>;
+  users: Array<User>;
   me?: Maybe<User>;
 };
+
+export type TopMeme = {
+   __typename?: 'topMeme';
+  username: Scalars['String'];
+  memeId: Scalars['Int'];
+  ups: Scalars['Int'];
+  downs: Scalars['Int'];
+  percent: Scalars['Float'];
+  commentCount: Scalars['Int'];
+  createdAt: Scalars['DateTime'];
+  url: Scalars['String'];
+};
+
 
 export type User = {
    __typename?: 'User';
@@ -79,23 +176,101 @@ export type User = {
   email: Scalars['String'];
   username: Scalars['String'];
   avatar: Scalars['String'];
+  memes: Array<Meme>;
+  comments: Array<Comment>;
+  memeVotes: Array<MemeVote>;
+  commentVotes: Array<CommentVote>;
   createdAt: Scalars['DateTime'];
-  wagers: Array<Wager>;
-  balance: Scalars['Float'];
 };
 
-export type Wager = {
-   __typename?: 'Wager';
-  id: Scalars['Int'];
-  market: Scalars['String'];
-  userId: Scalars['Int'];
-  user: User;
-  position: Scalars['Int'];
-  entry: Scalars['Float'];
-  openedAt: Scalars['DateTime'];
-  exit: Scalars['Float'];
-  closedAt: Scalars['DateTime'];
+export type PostCommentMutationVariables = {
+  text: Scalars['String'];
+  memeId: Scalars['Int'];
 };
+
+
+export type PostCommentMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'postComment'>
+);
+
+export type CommentDataMutationVariables = {
+  memeId: Scalars['Int'];
+};
+
+
+export type CommentDataMutation = (
+  { __typename?: 'Mutation' }
+  & { commentData: Array<(
+    { __typename?: 'CommentData' }
+    & Pick<CommentData, 'id' | 'text' | 'createdAt' | 'username' | 'avatar' | 'ups' | 'downs'>
+  )> }
+);
+
+export type PostMemeMutationVariables = {
+  file: Scalars['Upload'];
+};
+
+
+export type PostMemeMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'postMeme'>
+);
+
+export type MyMemesQueryVariables = {};
+
+
+export type MyMemesQuery = (
+  { __typename?: 'Query' }
+  & { myMemes?: Maybe<(
+    { __typename?: 'Meme' }
+    & Pick<Meme, 'id' | 'url' | 'createdAt'>
+    & { comments: Array<(
+      { __typename?: 'Comment' }
+      & Pick<Comment, 'id'>
+    )>, memeVotes: Array<(
+      { __typename?: 'MemeVote' }
+      & Pick<MemeVote, 'userId'>
+    )> }
+  )> }
+);
+
+export type TopMemesMutationVariables = {
+  days: Scalars['Int'];
+  ordering: OrderingQl;
+  offset: Scalars['Int'];
+};
+
+
+export type TopMemesMutation = (
+  { __typename?: 'Mutation' }
+  & { topMemes: Array<(
+    { __typename?: 'topMeme' }
+    & Pick<TopMeme, 'username' | 'memeId' | 'ups' | 'downs' | 'percent' | 'commentCount' | 'createdAt' | 'url'>
+  )> }
+);
+
+export type VoteMemeMutationVariables = {
+  value: Scalars['Int'];
+  memeId: Scalars['Int'];
+};
+
+
+export type VoteMemeMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'voteMeme'>
+);
+
+export type UsersQueryVariables = {};
+
+
+export type UsersQuery = (
+  { __typename?: 'Query' }
+  & { users: Array<(
+    { __typename?: 'User' }
+    & Pick<User, 'email' | 'id'>
+  )> }
+);
 
 export type MeQueryVariables = {};
 
@@ -164,30 +339,251 @@ export type LoadRedbMutation = (
   & Pick<Mutation, 'redb'>
 );
 
-export type OpenMutationVariables = {
-  market: Scalars['String'];
-  position: Scalars['Int'];
-  entry: Scalars['Int'];
-};
 
+export const PostCommentDocument = gql`
+    mutation PostComment($text: String!, $memeId: Int!) {
+  postComment(text: $text, memeId: $memeId)
+}
+    `;
+export type PostCommentMutationFn = ApolloReactCommon.MutationFunction<PostCommentMutation, PostCommentMutationVariables>;
 
-export type OpenMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'open'>
-);
+/**
+ * __usePostCommentMutation__
+ *
+ * To run a mutation, you first call `usePostCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePostCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [postCommentMutation, { data, loading, error }] = usePostCommentMutation({
+ *   variables: {
+ *      text: // value for 'text'
+ *      memeId: // value for 'memeId'
+ *   },
+ * });
+ */
+export function usePostCommentMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<PostCommentMutation, PostCommentMutationVariables>) {
+        return ApolloReactHooks.useMutation<PostCommentMutation, PostCommentMutationVariables>(PostCommentDocument, baseOptions);
+      }
+export type PostCommentMutationHookResult = ReturnType<typeof usePostCommentMutation>;
+export type PostCommentMutationResult = ApolloReactCommon.MutationResult<PostCommentMutation>;
+export type PostCommentMutationOptions = ApolloReactCommon.BaseMutationOptions<PostCommentMutation, PostCommentMutationVariables>;
+export const CommentDataDocument = gql`
+    mutation CommentData($memeId: Int!) {
+  commentData(memeId: $memeId) {
+    id
+    text
+    createdAt
+    username
+    avatar
+    ups
+    downs
+  }
+}
+    `;
+export type CommentDataMutationFn = ApolloReactCommon.MutationFunction<CommentDataMutation, CommentDataMutationVariables>;
 
-export type CloseMutationVariables = {
-  id: Scalars['Int'];
-  exit: Scalars['Int'];
-};
+/**
+ * __useCommentDataMutation__
+ *
+ * To run a mutation, you first call `useCommentDataMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommentDataMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [commentDataMutation, { data, loading, error }] = useCommentDataMutation({
+ *   variables: {
+ *      memeId: // value for 'memeId'
+ *   },
+ * });
+ */
+export function useCommentDataMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CommentDataMutation, CommentDataMutationVariables>) {
+        return ApolloReactHooks.useMutation<CommentDataMutation, CommentDataMutationVariables>(CommentDataDocument, baseOptions);
+      }
+export type CommentDataMutationHookResult = ReturnType<typeof useCommentDataMutation>;
+export type CommentDataMutationResult = ApolloReactCommon.MutationResult<CommentDataMutation>;
+export type CommentDataMutationOptions = ApolloReactCommon.BaseMutationOptions<CommentDataMutation, CommentDataMutationVariables>;
+export const PostMemeDocument = gql`
+    mutation PostMeme($file: Upload!) {
+  postMeme(file: $file)
+}
+    `;
+export type PostMemeMutationFn = ApolloReactCommon.MutationFunction<PostMemeMutation, PostMemeMutationVariables>;
 
+/**
+ * __usePostMemeMutation__
+ *
+ * To run a mutation, you first call `usePostMemeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePostMemeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [postMemeMutation, { data, loading, error }] = usePostMemeMutation({
+ *   variables: {
+ *      file: // value for 'file'
+ *   },
+ * });
+ */
+export function usePostMemeMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<PostMemeMutation, PostMemeMutationVariables>) {
+        return ApolloReactHooks.useMutation<PostMemeMutation, PostMemeMutationVariables>(PostMemeDocument, baseOptions);
+      }
+export type PostMemeMutationHookResult = ReturnType<typeof usePostMemeMutation>;
+export type PostMemeMutationResult = ApolloReactCommon.MutationResult<PostMemeMutation>;
+export type PostMemeMutationOptions = ApolloReactCommon.BaseMutationOptions<PostMemeMutation, PostMemeMutationVariables>;
+export const MyMemesDocument = gql`
+    query MyMemes {
+  myMemes {
+    id
+    url
+    comments {
+      id
+    }
+    memeVotes {
+      userId
+    }
+    createdAt
+  }
+}
+    `;
 
-export type CloseMutation = (
-  { __typename?: 'Mutation' }
-  & Pick<Mutation, 'close'>
-);
+/**
+ * __useMyMemesQuery__
+ *
+ * To run a query within a React component, call `useMyMemesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyMemesQuery` returns an object from Apollo Client that contains loading, error, and data properties 
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyMemesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyMemesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<MyMemesQuery, MyMemesQueryVariables>) {
+        return ApolloReactHooks.useQuery<MyMemesQuery, MyMemesQueryVariables>(MyMemesDocument, baseOptions);
+      }
+export function useMyMemesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<MyMemesQuery, MyMemesQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<MyMemesQuery, MyMemesQueryVariables>(MyMemesDocument, baseOptions);
+        }
+export type MyMemesQueryHookResult = ReturnType<typeof useMyMemesQuery>;
+export type MyMemesLazyQueryHookResult = ReturnType<typeof useMyMemesLazyQuery>;
+export type MyMemesQueryResult = ApolloReactCommon.QueryResult<MyMemesQuery, MyMemesQueryVariables>;
+export const TopMemesDocument = gql`
+    mutation TopMemes($days: Int!, $ordering: OrderingQL!, $offset: Int!) {
+  topMemes(days: $days, ordering: $ordering, offset: $offset) {
+    username
+    memeId
+    ups
+    downs
+    percent
+    commentCount
+    createdAt
+    url
+  }
+}
+    `;
+export type TopMemesMutationFn = ApolloReactCommon.MutationFunction<TopMemesMutation, TopMemesMutationVariables>;
 
+/**
+ * __useTopMemesMutation__
+ *
+ * To run a mutation, you first call `useTopMemesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTopMemesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [topMemesMutation, { data, loading, error }] = useTopMemesMutation({
+ *   variables: {
+ *      days: // value for 'days'
+ *      ordering: // value for 'ordering'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useTopMemesMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<TopMemesMutation, TopMemesMutationVariables>) {
+        return ApolloReactHooks.useMutation<TopMemesMutation, TopMemesMutationVariables>(TopMemesDocument, baseOptions);
+      }
+export type TopMemesMutationHookResult = ReturnType<typeof useTopMemesMutation>;
+export type TopMemesMutationResult = ApolloReactCommon.MutationResult<TopMemesMutation>;
+export type TopMemesMutationOptions = ApolloReactCommon.BaseMutationOptions<TopMemesMutation, TopMemesMutationVariables>;
+export const VoteMemeDocument = gql`
+    mutation VoteMeme($value: Int!, $memeId: Int!) {
+  voteMeme(value: $value, memeId: $memeId)
+}
+    `;
+export type VoteMemeMutationFn = ApolloReactCommon.MutationFunction<VoteMemeMutation, VoteMemeMutationVariables>;
 
+/**
+ * __useVoteMemeMutation__
+ *
+ * To run a mutation, you first call `useVoteMemeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVoteMemeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [voteMemeMutation, { data, loading, error }] = useVoteMemeMutation({
+ *   variables: {
+ *      value: // value for 'value'
+ *      memeId: // value for 'memeId'
+ *   },
+ * });
+ */
+export function useVoteMemeMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<VoteMemeMutation, VoteMemeMutationVariables>) {
+        return ApolloReactHooks.useMutation<VoteMemeMutation, VoteMemeMutationVariables>(VoteMemeDocument, baseOptions);
+      }
+export type VoteMemeMutationHookResult = ReturnType<typeof useVoteMemeMutation>;
+export type VoteMemeMutationResult = ApolloReactCommon.MutationResult<VoteMemeMutation>;
+export type VoteMemeMutationOptions = ApolloReactCommon.BaseMutationOptions<VoteMemeMutation, VoteMemeMutationVariables>;
+export const UsersDocument = gql`
+    query Users {
+  users {
+    email
+    id
+  }
+}
+    `;
+
+/**
+ * __useUsersQuery__
+ *
+ * To run a query within a React component, call `useUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties 
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUsersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUsersQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+        return ApolloReactHooks.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, baseOptions);
+      }
+export function useUsersLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<UsersQuery, UsersQueryVariables>(UsersDocument, baseOptions);
+        }
+export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
+export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
+export type UsersQueryResult = ApolloReactCommon.QueryResult<UsersQuery, UsersQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {
@@ -359,66 +755,3 @@ export function useLoadRedbMutation(baseOptions?: ApolloReactHooks.MutationHookO
 export type LoadRedbMutationHookResult = ReturnType<typeof useLoadRedbMutation>;
 export type LoadRedbMutationResult = ApolloReactCommon.MutationResult<LoadRedbMutation>;
 export type LoadRedbMutationOptions = ApolloReactCommon.BaseMutationOptions<LoadRedbMutation, LoadRedbMutationVariables>;
-export const OpenDocument = gql`
-    mutation Open($market: String!, $position: Int!, $entry: Int!) {
-  open(market: $market, position: $position, entry: $entry)
-}
-    `;
-export type OpenMutationFn = ApolloReactCommon.MutationFunction<OpenMutation, OpenMutationVariables>;
-
-/**
- * __useOpenMutation__
- *
- * To run a mutation, you first call `useOpenMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useOpenMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [openMutation, { data, loading, error }] = useOpenMutation({
- *   variables: {
- *      market: // value for 'market'
- *      position: // value for 'position'
- *      entry: // value for 'entry'
- *   },
- * });
- */
-export function useOpenMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<OpenMutation, OpenMutationVariables>) {
-        return ApolloReactHooks.useMutation<OpenMutation, OpenMutationVariables>(OpenDocument, baseOptions);
-      }
-export type OpenMutationHookResult = ReturnType<typeof useOpenMutation>;
-export type OpenMutationResult = ApolloReactCommon.MutationResult<OpenMutation>;
-export type OpenMutationOptions = ApolloReactCommon.BaseMutationOptions<OpenMutation, OpenMutationVariables>;
-export const CloseDocument = gql`
-    mutation Close($id: Int!, $exit: Int!) {
-  close(id: $id, exit: $exit)
-}
-    `;
-export type CloseMutationFn = ApolloReactCommon.MutationFunction<CloseMutation, CloseMutationVariables>;
-
-/**
- * __useCloseMutation__
- *
- * To run a mutation, you first call `useCloseMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCloseMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [closeMutation, { data, loading, error }] = useCloseMutation({
- *   variables: {
- *      id: // value for 'id'
- *      exit: // value for 'exit'
- *   },
- * });
- */
-export function useCloseMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CloseMutation, CloseMutationVariables>) {
-        return ApolloReactHooks.useMutation<CloseMutation, CloseMutationVariables>(CloseDocument, baseOptions);
-      }
-export type CloseMutationHookResult = ReturnType<typeof useCloseMutation>;
-export type CloseMutationResult = ApolloReactCommon.MutationResult<CloseMutation>;
-export type CloseMutationOptions = ApolloReactCommon.BaseMutationOptions<CloseMutation, CloseMutationVariables>;

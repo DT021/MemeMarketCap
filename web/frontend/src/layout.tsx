@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
+import { Navbar } from './components/layout/navbar/Navbar'
+import { Leftbar } from './components/layout/leftbar/Leftbar'
+import { PageHook } from './PageHook'
 import Axios from 'axios'
 import useAsyncEffect from 'use-async-effect';
-import { useStoreActions } from './store/store'
 import styled from 'styled-components';
-import { theme } from './colors';
+import { maxWidth } from './styles'
+import { useStoreActions } from './store/store'
+import { Feedbar } from './components/layout/feedbar/feedbar'
 
 export const Layout = (): JSX.Element => {
     const [loading, setLoading] = useState(true);
@@ -11,55 +15,22 @@ export const Layout = (): JSX.Element => {
     const { setAuthState } = useStoreActions(actions => actions.auth);
     useAsyncEffect(async () => {
         const { data: { accessToken } } = await transport.post('/refreshToken');
-        setLoading(false);
-        setAuthState(accessToken);
+        setLoading(false); setAuthState(accessToken);
 	}, [setAuthState]);
-    return loading ? <>test</> : <Wrapper><Navbar /></Wrapper>
+    return loading ? <></> : <Wrapper><Navbar /><Leftbar /><Feedbar /><PageHook /></Wrapper>
 };
-
-const Navbar = () => {
-    return <>
-        <Nav>
-            <Logo />
-            <ProfilePic />
-        </Nav>
-    </>
-};
-
-const Content = () => {
-    return <>
-        
-    </>
-};
-
-const Nav = styled.nav`
-    display: flex;
-    justify-content: space-between;
-    padding-left: 4rem;
-    padding-right: 4rem;
-`;
 
 const Wrapper = styled.div`
     display: grid;
-    grid-template-rows: 8vh auto;
-    grid-template-areas: 'navbar' 'content';
-    overflow: auto;
-    background-color: ${theme};
+    grid-template-rows: 9vh 10vh 9fr;
+    grid-template-columns: 1fr 4fr;
+    grid-template-areas: 
+        'navbar navbar'
+        'leftbar feedbar'
+        'leftbar feed';
+    width: 100vw;
+    height: 100vh;
+    max-width: ${maxWidth};
     padding: 0;
     margin: 0;
-`;
-
-const Logo = styled.img.attrs({
-    src: "/img/main-logo.png",
-    alt: "I cAnT fInD tHe ImAgE"
-})`
-    width: 10vw;
-`;
-
-const ProfilePic = styled.img.attrs({
-    src: "/img/npc_default.jpg",
-    alt: "I cAnT fInD tHe ImAgE"
-})`
-    width: 3vw;
-    border-radius: 50%;
 `;

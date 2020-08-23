@@ -10,11 +10,16 @@ import { getConnection, getCustomRepository } from 'typeorm';
 @Resolver()
 export class UserResolver {
 
+    @Query(() => [User])
+    async users(): Promise<User[]> {
+        return await User.find({
+            relations: ["memes", "comments", "memeVotes", "commentVotes"]
+        });
+    }
+
     @Query(() => User, {nullable: true})
     @UseMiddleware(Auth) 
-    async me(
-        @Ctx() { payload }: ServerContext
-    ): Promise<User | undefined> {
+    async me(@Ctx() { payload }: ServerContext): Promise<User | undefined> {
         return await User.findOne(payload!.user.id);
     }
 

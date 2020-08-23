@@ -1,3 +1,9 @@
+query Users {
+    users {
+        email
+        id
+    }
+}
 query Me {
     me {
         id

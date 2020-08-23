@@ -10,8 +10,11 @@
       "synchronize": true,
       "logging": false,
       "entities": [
-         "src/models/wager/Wager.ts",
-         "src/models/user/User.ts"
+         "src/models/comment/Comment.ts",
+         "src/models/meme/Meme.ts",
+         "src/models/user/User.ts",
+         "src/models/CommentVote.ts",
+         "src/models/MemeVote.ts"
       ],
       "migrations": [
          "src/migration/**/*.ts"
