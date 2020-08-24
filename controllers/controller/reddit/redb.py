@@ -6,8 +6,14 @@ from controller.extensions import db
 from controller.reddit import RedditMeme, RedditScore
 from controller.reddit.functions import *
 
+timeframes = [
+    ("Daily", DAY_TD),
+    ("Weekly", WEEK_TD),
+    ("Monthly", MONTH_TD),
+    ("Ever", None)
+]
 class RedditReDB:
-    def __init__(self, full=True, build=True):
+    def __init__(self):
         self.reconn = redis.StrictRedis(host='rejson', port=6379, db=0)
     def _set(self, name, obj, path='.'):
         self.reconn.execute_command('JSON.SET', name, path, json.dumps(obj))
@@ -20,34 +26,21 @@ class RedditReDB:
     @property
     def serialize(self):
         return [ {"overview": self.overview}, {"top_month": self.top_month} ]
-    def build(self):
+    def update(self):
         self.subreddit_list = FULL_SUB_LIST
         self.overview = { "totals": {"Daily": [], "Weekly": [], "Monthly": [], "Ever": [] }}
         self.top_month = { "data": [] }
         for idx, subreddit in enumerate(self.subreddit_list):
             min_ts, max_ts = redditscore_min_ts(subreddit), redditscore_max_ts(subreddit)
             if max_ts:
-                self.overview["totals"]["Daily"].append({
-                    "sub": subreddit,
-                    "amount": num_posts(subreddit, max_ts - DAY_TD, max_ts),
-                    "percent": percent_change(subreddit, max_ts - DAY_TD, max_ts)
-                })
-                self.overview["totals"]["Weekly"].append({
-                    "sub": subreddit,
-                    "amount": num_posts(subreddit, max_ts - WEEK_TD, max_ts),
-                    "percent": percent_change(subreddit, max_ts - WEEK_TD, max_ts)
-                })
-                self.overview["totals"]["Monthly"].append({
-                    "sub": subreddit,
-                    "amount": num_posts(subreddit, max_ts - MONTH_TD, max_ts),
-                    "percent": percent_change(subreddit, max_ts - MONTH_TD, max_ts)
-                })
-                self.overview["totals"]["Ever"].append({
-                    "sub": subreddit,
-                    "amount": num_posts(subreddit, min_ts, max_ts),
-                    "percent": percent_change(subreddit, min_ts, max_ts)
-                })
-                data = [ data.stats for data in
+                for tf, delta in timeframes:
+                    delta = delta if delta else max_ts-min_ts
+                    self.overview["totals"][tf].append({
+                        "sub": subreddit,
+                        "amount": num_posts(subreddit, max_ts - delta, max_ts),
+                        "percent": percent_change(subreddit, max_ts - delta, max_ts)
+                    })
+                data = [data.stats for data in
                     db.session.query(RedditScore).filter(
                         and_(
                             RedditScore.timestamp == max_ts,
@@ -63,6 +56,5 @@ class RedditReDB:
                             RedditMeme.author == data["author"]
                         ).order_by(func.random()).first()[0]
                     )
-            
         self._set('overview', self.overview)
         self._set('top_month', self.top_month)

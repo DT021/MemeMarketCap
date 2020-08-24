@@ -4,9 +4,9 @@ from datetime import datetime
 from sqlalchemy import and_
 
 from controller.extensions import db
-from controller.reddit.functions.constants import HOUR_TD, MONTH_TD
+from controller.constants import HOUR_TD, MONTH_TD
 from controller.reddit.functions.database import (
-    redditmeme_max_ts,
+    get_subs_to_scrape, redditmeme_max_ts,
     redditmeme_min_ts,
     redditscore_max_ts
 )
@@ -16,20 +16,18 @@ from controller.reddit.schema import RedditMeme, RedditScore
 
 
 class RedditScorer:
-    def __init__(self, subreddit):
-        self.subreddit = subreddit
-        self.redditmeme_min_ts = redditmeme_min_ts(self.subreddit)
-        self.redditmeme_max_ts = redditmeme_max_ts(self.subreddit)
-        self.redditscore_max_ts = redditscore_max_ts(self.subreddit)
-
-    def scoring_engine(self, interval=HOUR_TD, td=MONTH_TD):
-        if not self.redditscore_max_ts:
-            self.redditscore_max_ts = round_hour(self.redditmeme_min_ts) + td - interval
-        if self.redditscore_max_ts < round_hour(self.redditmeme_max_ts) - interval:
-            while self.redditscore_max_ts <= round_hour(self.redditmeme_max_ts) - interval:
-                next_step = self.redditscore_max_ts + interval
-                self.score(next_step - td, next_step)
-                self.redditscore_max_ts = next_step
+    def update(self, interval=HOUR_TD, td=MONTH_TD):
+        for self.subreddit in get_subs_to_scrape():
+            redditmeme_min_ts = redditmeme_min_ts(self.subreddit)
+            redditmeme_max_ts = redditmeme_max_ts(self.subreddit)
+            redditscore_max_ts = redditscore_max_ts(self.subreddit)
+            if not redditscore_max_ts:
+                redditscore_max_ts = round_hour(redditmeme_min_ts) + td - interval
+            if redditscore_max_ts < round_hour(redditmeme_max_ts) - interval:
+                while redditscore_max_ts <= round_hour(redditmeme_max_ts) - interval:
+                    next_step = redditscore_max_ts + interval
+                    self.score(next_step - td, next_step)
+                    redditscore_max_ts = next_step
 
     def score(self, start_ts, end_ts):
         df = score_df(

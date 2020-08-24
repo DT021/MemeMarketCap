@@ -10,7 +10,7 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from controller.sentry import integrate_sentry
 from controller.extensions import debug_toolbar,db
 
-CELERY_TASK_LIST = [] # ['controller.tasks']
+CELERY_TASK_LIST = ['controller.tasks']
 def create_celery_app(app=None):
     app = app or create_app()
     celery = Celery(
@@ -32,22 +32,19 @@ def create_app(settings_override=None):
     app = Flask(__name__, instance_relative_config=True)
     Migrate(app, db)
     app.config.from_object('config.flask')
-
     extensions(app)
-
     @app.route('/')
     def index():
         return redirect(url_for('demo.home'))
     @app.route('/redb_struct')
     def redb_struct():
         redb = RedditReDB()
-        redb.build()
+        redb.update()
         return jsonify(redb.current)
     @app.route('/debug_sentry')
     def trigger_error():
         division_by_zero = 1 / 0
         return jsonify("I dIvIdEd By ZeRo")
-
     return app
 
 def sentry():
