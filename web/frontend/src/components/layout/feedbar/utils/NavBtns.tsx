@@ -7,10 +7,11 @@ import { btn } from './FeedbarData';
 
 export const NavBtns = ({ navbtns }: { navbtns: btn[]}) => {
     const { feed } = useStoreState(state => state.active);
+    const currentFeed = feed
     const { setFeed } = useStoreActions(actions => actions.active);
-    return _.map(navbtns, ({ display, feed}) => {
+    return _.map(navbtns, ({ display, feed }) => {
         return <>
-            <FeedbarBtnStyle key={display} feed={feed} currentFeed={feed} setFeed={setFeed}>
+            <FeedbarBtnStyle key={display} feed={feed} currentFeed={currentFeed} setFeed={setFeed}>
                 {display}
             </FeedbarBtnStyle>
         </>

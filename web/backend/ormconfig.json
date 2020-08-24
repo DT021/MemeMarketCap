@@ -14,7 +14,8 @@
          "src/models/meme/Meme.ts",
          "src/models/user/User.ts",
          "src/models/CommentVote.ts",
-         "src/models/MemeVote.ts"
+         "src/models/MemeVote.ts",
+         "src/models/wager/Wager.ts"
       ],
       "migrations": [
          "src/migration/**/*.ts"
